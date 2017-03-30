@@ -66,16 +66,16 @@ public class BenchMark {
         }, 10000, 10000);
     }
 
-    long beginTimestamp;
+    ThreadLocal<Long> beginTimestamp = new ThreadLocal<Long>();
 
     public void statisticsStart() {
-        beginTimestamp = System.currentTimeMillis();
+        beginTimestamp.set(System.currentTimeMillis());
     }
 
     public void statisticsEnd() {
         statsBenchmark.getSendRequestSuccessCount().incrementAndGet();
         statsBenchmark.getReceiveResponseSuccessCount().incrementAndGet();
-        final long currentRT = currentTimeMillis() - beginTimestamp;
+        final long currentRT = currentTimeMillis() - beginTimestamp.get();
         statsBenchmark.getSendSuccessTimeTotal().addAndGet(currentRT);
         long prevMaxRT = statsBenchmark.getSendMaxRT().get();
         while (currentRT > prevMaxRT) {
