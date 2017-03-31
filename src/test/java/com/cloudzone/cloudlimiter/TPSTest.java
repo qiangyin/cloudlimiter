@@ -2,12 +2,10 @@ package com.cloudzone.cloudlimiter;
 
 import com.cloudzone.cloudlimiter.base.CloudLimiter;
 import com.cloudzone.cloudlimiter.benchmark.BenchMark;
-import com.cloudzone.cloudlimiter.flow.FlowLimiter;
 import org.junit.Test;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -18,7 +16,7 @@ public class TPSTest {
     final int threadCount = 1;
     final ExecutorService sendThreadPool = Executors.newFixedThreadPool(threadCount);
     static AtomicLong atoNum = new AtomicLong(0);
-    final static CloudLimiter cloudLimiter = CloudLimiter.create(1000);
+    final static CloudLimiter cloudLimiter = CloudLimiter.create(500);
 
     @Test
     public void testSingleBenchMark() {
@@ -47,7 +45,7 @@ public class TPSTest {
                 tps = atoNum.get() / sec;
             }
 
-            System.out.println("TPS == " + tps + " num == " + atoNum.get() + " time == " + sec);
+            System.out.println("TPS ==  " + tps + " num == " + atoNum.get() + " time == " + sec);
             sleepMillis(1000);
         }
 

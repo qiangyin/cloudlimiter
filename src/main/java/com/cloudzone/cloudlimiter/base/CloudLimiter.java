@@ -1,11 +1,6 @@
 package com.cloudzone.cloudlimiter.base;
 
 import com.cloudzone.cloudlimiter.flow.FlowType;
-import com.google.common.annotations.Beta;
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Preconditions;
-import com.google.common.base.Ticker;
-import com.google.common.util.concurrent.Uninterruptibles;
 
 import java.util.concurrent.TimeUnit;
 
@@ -13,9 +8,8 @@ import java.util.concurrent.TimeUnit;
  * @author tantexian<my.oschina.net/tantexian>
  * @since 2017/3/30
  */
-@Beta
 public abstract class CloudLimiter {
-    private final CloudLimiter.SleepingTicker ticker;
+    private final CloudLimiter.SleepingCloudTicker CloudTicker;
     private final long offsetNanos;
     double storedPermits;
     double maxPermits;
@@ -23,45 +17,45 @@ public abstract class CloudLimiter {
     private final Object mutex;
     private long nextFreeTicketMicros;
 
+    // permitsPerSecond 每秒钟能够获取的令牌许可证数量
     public static CloudLimiter create(double permitsPerSecond) {
-        return create(CloudLimiter.SleepingTicker.SYSTEM_TICKER, permitsPerSecond);
+        // SYSTEM_CloudTicker为当前启动时System.nanoTime()
+        return create(CloudLimiter.SleepingCloudTicker.SYSTEM_CloudTicker, permitsPerSecond);
     }
 
-    @VisibleForTesting
-    public static CloudLimiter create(CloudLimiter.SleepingTicker ticker, double permitsPerSecond) {
-        CloudLimiter.Bursty cloudLimiter = new CloudLimiter.Bursty(ticker, 1.0D);
+    // CloudTicker为初始启动时间ticker
+    public static CloudLimiter create(CloudLimiter.SleepingCloudTicker CloudTicker, double permitsPerSecond) {
+        CloudLimiter.Bursty cloudLimiter = new CloudLimiter.Bursty(CloudTicker, 1.0D);
         cloudLimiter.setRate(permitsPerSecond);
         return cloudLimiter;
     }
 
     public static CloudLimiter create(double permitsPerSecond, long warmupPeriod, TimeUnit unit) {
-        return create(CloudLimiter.SleepingTicker.SYSTEM_TICKER, permitsPerSecond, warmupPeriod, unit);
+        return create(CloudLimiter.SleepingCloudTicker.SYSTEM_CloudTicker, permitsPerSecond, warmupPeriod, unit);
     }
 
-    @VisibleForTesting
-    static CloudLimiter create(CloudLimiter.SleepingTicker ticker, double permitsPerSecond, long warmupPeriod, TimeUnit unit) {
-        CloudLimiter.WarmingUp cloudLimiter = new CloudLimiter.WarmingUp(ticker, warmupPeriod, unit);
+    static CloudLimiter create(CloudLimiter.SleepingCloudTicker CloudTicker, double permitsPerSecond, long warmupPeriod, TimeUnit unit) {
+        CloudLimiter.WarmingUp cloudLimiter = new CloudLimiter.WarmingUp(CloudTicker, warmupPeriod, unit);
         cloudLimiter.setRate(permitsPerSecond);
         return cloudLimiter;
     }
 
-    @VisibleForTesting
-    static CloudLimiter createWithCapacity(CloudLimiter.SleepingTicker ticker, double permitsPerSecond, long maxBurstBuildup, TimeUnit unit) {
+    static CloudLimiter createWithCapacity(CloudLimiter.SleepingCloudTicker CloudTicker, double permitsPerSecond, long maxBurstBuildup, TimeUnit unit) {
         double maxBurstSeconds = (double) unit.toNanos(maxBurstBuildup) / 1.0E9D;
-        CloudLimiter.Bursty cloudLimiter = new CloudLimiter.Bursty(ticker, maxBurstSeconds);
+        CloudLimiter.Bursty cloudLimiter = new CloudLimiter.Bursty(CloudTicker, maxBurstSeconds);
         cloudLimiter.setRate(permitsPerSecond);
         return cloudLimiter;
     }
 
-    private CloudLimiter(CloudLimiter.SleepingTicker ticker) {
+    private CloudLimiter(CloudLimiter.SleepingCloudTicker CloudTicker) {
         this.mutex = new Object();
         this.nextFreeTicketMicros = 0L;
-        this.ticker = ticker;
-        this.offsetNanos = ticker.read();
+        this.CloudTicker = CloudTicker;
+        this.offsetNanos = CloudTicker.read();
     }
 
     public final void setRate(double permitsPerSecond) {
-        Preconditions.checkArgument(permitsPerSecond > 0.0D && !Double.isNaN(permitsPerSecond), "rate must be positive");
+        CloudPreconditions.checkArgument(permitsPerSecond > 0.0D && !Double.isNaN(permitsPerSecond), "rate must be positive");
         Object var3 = this.mutex;
         synchronized (this.mutex) {
             this.resync(this.readSafeMicros());
@@ -82,8 +76,13 @@ public abstract class CloudLimiter {
     }
 
     public double acquire(int permits) {
+        final long start1 = System.nanoTime();
+        // System.out.println("start- " + start1);
         long microsToWait = this.reserve(permits);
-        this.ticker.sleepMicrosUninterruptibly(microsToWait * 1000);
+        //        System.out.println("microsToWait- " + microsToWait);
+        long end1 = System.nanoTime();
+        //        System.out.println("end- " + end1 + " diff == " + (end1 - start1));
+        this.CloudTicker.sleepMicrosUninterruptibly(microsToWait);
         return 1.0D * (double) microsToWait / (double) TimeUnit.SECONDS.toMicros(1L);
     }
 
@@ -125,12 +124,12 @@ public abstract class CloudLimiter {
             microsToWait = this.reserveNextTicket((double) permits, nowMicros);
         }
 
-        this.ticker.sleepMicrosUninterruptibly(microsToWait);
+        this.CloudTicker.sleepMicrosUninterruptibly(microsToWait);
         return true;
     }
 
     private static void checkPermits(int permits) {
-        Preconditions.checkArgument(permits > 0, "Requested permits must be positive");
+        CloudPreconditions.checkArgument(permits > 0, "Requested permits must be positive");
     }
 
     private long reserveNextTicket(double requiredPermits, long nowMicros) {
@@ -155,39 +154,39 @@ public abstract class CloudLimiter {
     }
 
     private long readSafeMicros() {
-        return TimeUnit.NANOSECONDS.toMicros(this.ticker.read() - this.offsetNanos);
+        return TimeUnit.NANOSECONDS.toMicros(this.CloudTicker.read() - this.offsetNanos);
     }
 
     public String toString() {
         return String.format("CloudLimiter[stableRate=%3.1fqps]", new Object[]{Double.valueOf(1000000.0D / this.stableIntervalMicros)});
     }
 
-    @VisibleForTesting
-    abstract static class SleepingTicker extends Ticker {
-        static final CloudLimiter.SleepingTicker SYSTEM_TICKER = new CloudLimiter.SleepingTicker() {
+    abstract static class SleepingCloudTicker extends CloudTicker {
+        static final CloudLimiter.SleepingCloudTicker SYSTEM_CloudTicker = new CloudLimiter.SleepingCloudTicker() {
             public long read() {
                 return systemTicker().read();
             }
 
             public void sleepMicrosUninterruptibly(long micros) {
                 if (micros > 0L) {
-                    Uninterruptibles.sleepUninterruptibly(micros, TimeUnit.MICROSECONDS);
+                    CloudUninterruptibles.sleepUninterruptibly(micros, TimeUnit.MICROSECONDS);
                 }
 
             }
         };
 
-        SleepingTicker() {
+        SleepingCloudTicker() {
         }
 
         abstract void sleepMicrosUninterruptibly(long var1);
     }
 
     private static class Bursty extends CloudLimiter {
-        final double maxBurstSeconds;
+        final double maxBurstSeconds;// 默认为1.0
 
-        Bursty(CloudLimiter.SleepingTicker ticker, double maxBurstSeconds) {
-            super(ticker);
+        // CloudTicker为初始启动时间ticker, maxBurstSeconds默认为1.0
+        Bursty(CloudLimiter.SleepingCloudTicker CloudTicker, double maxBurstSeconds) {
+            super(CloudTicker);
             this.maxBurstSeconds = maxBurstSeconds;
         }
 
@@ -207,8 +206,8 @@ public abstract class CloudLimiter {
         private double slope;
         private double halfPermits;
 
-        WarmingUp(CloudLimiter.SleepingTicker ticker, long warmupPeriod, TimeUnit timeUnit) {
-            super(ticker);
+        WarmingUp(CloudLimiter.SleepingCloudTicker CloudTicker, long warmupPeriod, TimeUnit timeUnit) {
+            super(CloudTicker);
             this.warmupPeriodMicros = timeUnit.toMicros(warmupPeriod);
         }
 
@@ -246,8 +245,8 @@ public abstract class CloudLimiter {
 
     private static class Flow extends CloudLimiter {
 
-        Flow(CloudLimiter.SleepingTicker ticker) {
-            super(ticker);
+        Flow(CloudLimiter.SleepingCloudTicker CloudTicker) {
+            super(CloudTicker);
         }
 
         void doSetRate(double permitsPerSecond, double stableIntervalMicros) {
@@ -258,7 +257,7 @@ public abstract class CloudLimiter {
         }
 
         public static CloudLimiter limiterPerSecond(FlowType flowLimit) {
-            return create(CloudLimiter.SleepingTicker.SYSTEM_TICKER, flowLimit.getValue());
+            return create(CloudLimiter.SleepingCloudTicker.SYSTEM_CloudTicker, flowLimit.getValue());
         }
     }
 }

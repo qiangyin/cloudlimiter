@@ -1,10 +1,11 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+
     <groupId>com.cloudzone.cloudlimiter</groupId>
     <artifactId>cloudlimiter</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
     <build>
         <plugins>
             <plugin>
@@ -17,20 +18,32 @@
             </plugin>
         </plugins>
     </build>
-    <packaging>jar</packaging>
-    <name>cloudlimiter</name>
 
     <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
+        <guava.google.version>17.0</guava.google.version>
         <junit.version>4.5</junit.version>
-        <guava.version>17.0</guava.version>
+        <junit.version>4.5</junit.version>
+        <repo-id>gome</repo-id>
+        <release-repo-name>gome release repository</release-repo-name>
+        <release-repo-url>http://10.128.11.68:8081/nexus/content/repositories/releases/</release-repo-url>
+        <snapshot-repo-name>gome snapshot repository</snapshot-repo-name>
+        <snapshot-repo-url>http://10.128.11.68:8081/nexus/content/repositories/snapshots/</snapshot-repo-url>
     </properties>
 
-
     <dependencies>
-        <dependency>
+       <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>17.0</version>
+            <version>${guava.google.version}</version>
+        </dependency>
+
+
+        <dependency>
+            <groupId>com.codahale.metrics</groupId>
+            <artifactId>metrics-core</artifactId>
+            <version>3.0.1</version>
         </dependency>
 
         <!-- 单元测试 -->
@@ -41,5 +54,19 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <distributionManagement>
+        <repository>
+            <id>${repo-id}</id>
+            <name>${release-repo-name}</name>
+            <url>${release-repo-url}</url>
+        </repository>
+
+        <snapshotRepository>
+            <id>${repo-id}</id>
+            <name>${snapshot-repo-name}</name>
+            <url>${snapshot-repo-url}</url>
+        </snapshotRepository>
+    </distributionManagement>
 
 </project>

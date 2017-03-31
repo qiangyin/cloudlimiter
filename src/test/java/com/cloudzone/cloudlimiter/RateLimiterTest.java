@@ -1,14 +1,11 @@
 package com.cloudzone.cloudlimiter;
 
 import com.cloudzone.cloudlimiter.base.CloudLimiter;
-import com.cloudzone.cloudlimiter.flow.FlowLimiter;
-import com.cloudzone.cloudlimiter.flow.FlowType;
-import com.google.common.util.concurrent.RateLimiter;
+import com.cloudzone.cloudlimiter.benchmark.BenchMark;
 import org.junit.Test;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static com.cloudzone.cloudlimiter.TPSTest.sleepMillis;
@@ -21,18 +18,37 @@ public class RateLimiterTest {
     final int threadCount = 10;
     final ExecutorService sendThreadPool = Executors.newFixedThreadPool(threadCount);
     static AtomicLong atoNum = new AtomicLong(0);
-    final static RateLimiter rateLimiter = RateLimiter.create(1, 10, TimeUnit.SECONDS);
+    //final static RateLimiter rateLimiter = RateLimiter.create(1, 10, TimeUnit.SECONDS);
     final static CloudLimiter cloudLimiter = CloudLimiter.create(1000);
+    final long start = System.currentTimeMillis();
 
 
     @Test
     public void testLimiter() {
-        long start = System.currentTimeMillis();
+
+        final BenchMark benchMark10 = new BenchMark();
+
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (true) {
+                    // rateLimiter.acquire(100);
+                    cloudLimiter.acquire(100);
+                    benchMark10.statisticsStart();
+                    send();
+                    benchMark10.statisticsEnd();
+
+                }
+            }
+        }).start();
 
         while (true) {
-            // rateLimiter.acquire(100);
-            cloudLimiter.acquire();
-            send();
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             long sec = (System.currentTimeMillis() - start) / 1000;
             long tps = 0;
             if (sec > 0) {
@@ -69,6 +85,14 @@ public class RateLimiterTest {
     }
 
     public static void send() {
-        atoNum.addAndGet(1);
+        if(atoNum.addAndGet(1) < 10){
+           /* try {
+                System.out.println("--------------");
+                Thread.sleep(50);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }*/
+        }
+
     }
 }
