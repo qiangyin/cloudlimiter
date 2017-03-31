@@ -19,7 +19,7 @@ public class RateLimiterTest {
     final ExecutorService sendThreadPool = Executors.newFixedThreadPool(threadCount);
     static AtomicLong atoNum = new AtomicLong(0);
     //final static RateLimiter rateLimiter = RateLimiter.create(1, 10, TimeUnit.SECONDS);
-    final static CloudLimiter cloudLimiter = CloudLimiter.create(1000);
+    final static CloudLimiter cloudLimiter = CloudLimiter.create(0.1);
     final long start = System.currentTimeMillis();
 
 
@@ -34,7 +34,8 @@ public class RateLimiterTest {
             public void run() {
                 while (true) {
                     // rateLimiter.acquire(100);
-                    cloudLimiter.acquire(100);
+                    Double sec = cloudLimiter.acquire(1);
+                    System.out.println("sec == " + sec);
                     benchMark10.statisticsStart();
                     send();
                     benchMark10.statisticsEnd();
@@ -85,13 +86,13 @@ public class RateLimiterTest {
     }
 
     public static void send() {
-        if(atoNum.addAndGet(1) < 10){
-           /* try {
+        if (atoNum.addAndGet(1) < 10) {
+            try {
                 System.out.println("--------------");
-                Thread.sleep(50);
+                Thread.sleep(5000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
-            }*/
+            }
         }
 
     }
