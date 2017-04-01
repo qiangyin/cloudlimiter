@@ -48,7 +48,7 @@ public class TPSTest {
             }
 
             System.out.println("TPS ==  " + tps + " num == " + atoNum.get() + " time == " + sec);
-            CloudTicker.sleepMicrosUninterruptibly(TimeUnit.SECONDS.toMicros(1));
+            CloudTicker.sleepMicros(TimeUnit.SECONDS.toMicros(1));
         }
 
 
@@ -90,7 +90,7 @@ public class TPSTest {
             }
 
             System.out.println("TPS == " + tps + " num == " + atoNum.get() + " time == " + sec);
-            CloudTicker.sleepMicrosUninterruptibly(TimeUnit.SECONDS.toMicros(1));
+            CloudTicker.sleepMicros(TimeUnit.SECONDS.toMicros(1));
         }
 
 
@@ -98,7 +98,7 @@ public class TPSTest {
 
     public static void exeTimesPersecond(int times) {
         final long sleepMicroForOnce = TimeUnit.SECONDS.toMicros(1) / times;
-        CloudTicker.sleepMicrosUninterruptibly(sleepMicroForOnce);
+        CloudTicker.sleepMicros(sleepMicroForOnce);
         atoNum.addAndGet(1);
     }
 

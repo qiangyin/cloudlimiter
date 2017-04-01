@@ -45,7 +45,7 @@ public class RateLimiterTest {
         }).start();
 
         while (true) {
-            CloudTicker.sleepSecondsUninterruptibly(1);
+            CloudTicker.sleepSeconds(1);
             benchMark10.getStats();
             long sec = (System.currentTimeMillis() - start) / 1000;
             long tps = 0;
@@ -78,7 +78,7 @@ public class RateLimiterTest {
 
             }
             System.out.println("MyTPS == " + tps + " num == " + atoNum.get() + " time == " + sec);
-            CloudTicker.sleepSecondsUninterruptibly(1);
+            CloudTicker.sleepSeconds(1);
         }
     }
 

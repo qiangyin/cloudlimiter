@@ -140,7 +140,6 @@ public abstract class CloudRateLimiter {
      * @since 16.0 (present in 13.0 with {@code void} return type})
      */
     public double acquire() {
-        System.out.println("storedPermits" + this.storedPermits + "maxPermits" + this.maxPermits);
         return acquire(1);
     }
 
@@ -154,7 +153,8 @@ public abstract class CloudRateLimiter {
      */
     public double acquire(int permits) {
         long microsToWait = reserve(permits);
-        ticker.sleepMicrosUninterruptibly(microsToWait);
+        ticker.sleepMicros(microsToWait);
+        System.out.println("storedPermits == " + this.storedPermits + "  maxPermits == " + this.maxPermits);
         return 1.0 * microsToWait / TimeUnit.SECONDS.toMicros(1L);
     }
 

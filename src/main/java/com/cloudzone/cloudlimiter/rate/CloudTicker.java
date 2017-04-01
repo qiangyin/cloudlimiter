@@ -45,7 +45,7 @@ public abstract class CloudTicker {
      * @params sleepForMicros 睡眠的微秒数
      * @since 2017/4/1
      */
-    public static void sleepMicrosUninterruptibly(long sleepForMicros) {
+    public static void sleepMicros(long sleepForMicros) {
         boolean interrupted = false;
         try {
             long remainingNanos = TimeUnit.MICROSECONDS.toNanos(sleepForMicros);
@@ -74,9 +74,9 @@ public abstract class CloudTicker {
      * @params sleepForMicros 睡眠的微秒数
      * @since 2017/4/1
      */
-    public static void sleepSecondsUninterruptibly(double sleepForSecond) {
+    public static void sleepSeconds(double sleepForSecond) {
         long sleepForMicrs = (long) (sleepForSecond * 1000 * 1000);
-        sleepMicrosUninterruptibly(sleepForMicrs);
+        sleepMicros(sleepForMicrs);
     }
 
     /**
