@@ -1,11 +1,13 @@
 package com.cloudzone.cloudlimiter;
 
-import com.cloudzone.cloudlimiter.base.GoogleCloudLimiter;
-import com.cloudzone.cloudlimiter.benchmark.BenchMark;
+import com.cloudzone.cloudlimiter.meter.BenchMark;
+import com.cloudzone.cloudlimiter.rate.CloudRateLimiter;
+import com.cloudzone.cloudlimiter.rate.CloudTicker;
 import org.junit.Test;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -16,7 +18,7 @@ public class TPSTest {
     final int threadCount = 1;
     final ExecutorService sendThreadPool = Executors.newFixedThreadPool(threadCount);
     static AtomicLong atoNum = new AtomicLong(0);
-    final static GoogleCloudLimiter cloudLimiter = GoogleCloudLimiter.create(500);
+    final static CloudRateLimiter cloudLimiter = CloudRateLimiter.create(500);
 
     @Test
     public void testSingleBenchMark() {
@@ -30,7 +32,7 @@ public class TPSTest {
                     benchMark1.statisticsStart();
                     cloudLimiter.acquire();
                     atoNum.addAndGet(1);
-                    //tpsOfsecond(1000); // send()
+                    //exeTimesPersecond(1000); // send()
                     benchMark1.statisticsEnd();
                 }
             }
@@ -46,7 +48,7 @@ public class TPSTest {
             }
 
             System.out.println("TPS ==  " + tps + " num == " + atoNum.get() + " time == " + sec);
-            sleepMillis(1000);
+            CloudTicker.sleepMicrosUninterruptibly(TimeUnit.SECONDS.toMicros(1));
         }
 
 
@@ -66,7 +68,7 @@ public class TPSTest {
                         public void run() {
                             while (true) {
                                 benchMark.statisticsStart();
-                                tpsOfsecond(10000); // send()
+                                exeTimesPersecond(10000); // send()
                                 benchMark.statisticsEnd();
                             }
 
@@ -88,21 +90,18 @@ public class TPSTest {
             }
 
             System.out.println("TPS == " + tps + " num == " + atoNum.get() + " time == " + sec);
-            sleepMillis(1000);
+            CloudTicker.sleepMicrosUninterruptibly(TimeUnit.SECONDS.toMicros(1));
         }
 
 
     }
 
-    public static void tpsOfsecond(int times) {
-        sleepMillis(1000 / times);
+    public static void exeTimesPersecond(int times) {
+        final long sleepMicroForOnce = TimeUnit.SECONDS.toMicros(1) / times;
+        CloudTicker.sleepMicrosUninterruptibly(sleepMicroForOnce);
         atoNum.addAndGet(1);
     }
 
-    public static void sleepMillis(long millis) {
-        long start = System.currentTimeMillis();
-        while (System.currentTimeMillis() - start < millis) {
-        }
-    }
+
 }
 

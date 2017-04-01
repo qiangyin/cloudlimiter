@@ -1,15 +1,13 @@
 package com.cloudzone.cloudlimiter;
 
-import com.cloudzone.cloudlimiter.base.GoogleCloudLimiter;
-import com.cloudzone.cloudlimiter.benchmark.BenchMark;
+import com.cloudzone.cloudlimiter.meter.BenchMark;
+import com.cloudzone.cloudlimiter.rate.CloudRateLimiter;
+import com.cloudzone.cloudlimiter.rate.CloudTicker;
 import org.junit.Test;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
-
-import static com.cloudzone.cloudlimiter.TPSTest.sleepMillis;
 
 /**
  * @author tantexian
@@ -21,7 +19,7 @@ public class RateLimiterTest {
     static AtomicLong atoNum = new AtomicLong(0);
     //final static GoogleCloudLimiter rateLimiter1 = GoogleCloudLimiter.create(1000);
     //final static GoogleCloudLimiter rateLimiter1 = GoogleCloudLimiter.create(1000);
-    final static GoogleCloudLimiter rateLimiter1 = GoogleCloudLimiter.createWithCapacityOpen(1000, 1, TimeUnit.SECONDS);
+    final static CloudRateLimiter rateLimiter1 = CloudRateLimiter.create(1000);
     final long start = System.currentTimeMillis();
 
     @Test
@@ -47,12 +45,8 @@ public class RateLimiterTest {
         }).start();
 
         while (true) {
-            try {
-                Thread.sleep(1000);
-                benchMark10.getStats();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            CloudTicker.sleepSecondsUninterruptibly(1);
+            benchMark10.getStats();
             long sec = (System.currentTimeMillis() - start) / 1000;
             long tps = 0;
             if (sec > 0) {
@@ -84,7 +78,7 @@ public class RateLimiterTest {
 
             }
             System.out.println("MyTPS == " + tps + " num == " + atoNum.get() + " time == " + sec);
-            sleepMillis(1000);
+            CloudTicker.sleepSecondsUninterruptibly(1);
         }
     }
 

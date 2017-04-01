@@ -1,4 +1,4 @@
-package com.cloudzone.cloudlimiter.benchmark;
+package com.cloudzone.cloudlimiter.meter;
 
 import java.util.LinkedList;
 import java.util.Timer;
