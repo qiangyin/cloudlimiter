@@ -1,6 +1,6 @@
 package com.cloudzone.cloudlimiter;
 
-import com.cloudzone.cloudlimiter.base.CloudLimiter;
+import com.cloudzone.cloudlimiter.base.GoogleCloudLimiter;
 import com.cloudzone.cloudlimiter.benchmark.BenchMark;
 import org.junit.Test;
 
@@ -16,7 +16,7 @@ public class TPSTest {
     final int threadCount = 1;
     final ExecutorService sendThreadPool = Executors.newFixedThreadPool(threadCount);
     static AtomicLong atoNum = new AtomicLong(0);
-    final static CloudLimiter cloudLimiter = CloudLimiter.create(500);
+    final static GoogleCloudLimiter cloudLimiter = GoogleCloudLimiter.create(500);
 
     @Test
     public void testSingleBenchMark() {

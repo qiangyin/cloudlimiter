@@ -1,7 +1,7 @@
 package com.cloudzone.cloudlimiter.flow;
 
 
-import com.cloudzone.cloudlimiter.base.CloudLimiter;
+import com.cloudzone.cloudlimiter.base.GoogleCloudLimiter;
 
 /**
  * @author tantexian<my.oschina.net/tantexian>
@@ -9,26 +9,26 @@ import com.cloudzone.cloudlimiter.base.CloudLimiter;
  */
 public class FlowLimiter {
 
-    static CloudLimiter cloudLimiter;
+    static GoogleCloudLimiter cloudLimiter;
 
     public static void limiterPerSecond(FlowType flowLimit) {
-        cloudLimiter = CloudLimiter.create(flowLimit.value);
+        cloudLimiter = GoogleCloudLimiter.create(flowLimit.value);
     }
 
     public static void limiterPerMinute(FlowType flowLimit) {
-        cloudLimiter = CloudLimiter.create(flowLimit.value * Time.MINUTE);
+        cloudLimiter = GoogleCloudLimiter.create(flowLimit.value * Time.MINUTE);
     }
 
     public static void limiterPerHour(FlowType flowLimit) {
-        cloudLimiter = CloudLimiter.create(flowLimit.value * Time.HOUR);
+        cloudLimiter = GoogleCloudLimiter.create(flowLimit.value * Time.HOUR);
     }
 
     public static void limiterPerDay(FlowType flowLimit) {
-        cloudLimiter = CloudLimiter.create(flowLimit.value * Time.DAY);
+        cloudLimiter = GoogleCloudLimiter.create(flowLimit.value * Time.DAY);
     }
 
     public static void limiterPerMonth(FlowType flowLimit) {
-        cloudLimiter = CloudLimiter.create(flowLimit.value * Time.YEAT);
+        cloudLimiter = GoogleCloudLimiter.create(flowLimit.value * Time.YEAT);
     }
 
     public void resetRatePerSecond(FlowType flowLimit) {

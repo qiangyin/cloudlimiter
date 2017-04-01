@@ -43,6 +43,13 @@ public abstract class CloudLimiter {
         return cloudLimiter;
     }
 
+    public static CloudLimiter createWithCapacityOpen(double permitsPerSecond, long maxBurstBuildup, TimeUnit unit) {
+        double maxBurstSeconds = (double) unit.toNanos(maxBurstBuildup) / 1.0E9D;
+        CloudLimiter.Bursty cloudLimiter = new CloudLimiter.Bursty(CloudLimiter.SleepingCloudTicker.SYSTEM_CloudTicker, maxBurstSeconds);
+        cloudLimiter.setRate(permitsPerSecond);
+        return cloudLimiter;
+    }
+
     static CloudLimiter createWithCapacity(CloudLimiter.SleepingCloudTicker CloudTicker, double permitsPerSecond, long maxBurstBuildup, TimeUnit unit) {
         double maxBurstSeconds = (double) unit.toNanos(maxBurstBuildup) / 1.0E9D;
         CloudLimiter.Bursty cloudLimiter = new CloudLimiter.Bursty(CloudTicker, maxBurstSeconds);
@@ -79,7 +86,14 @@ public abstract class CloudLimiter {
 
     abstract void doSetRate(double d1, double d2);
 
+    /**
+     *  获取当前的每秒钟令牌数比率
+     * @author tantexian(https://my.oschina.net/tantexian/blog)
+     * @since 2017/4/1
+     * @params
+     */
     public final double getRate() {
+        // 一秒钟的微秒数/获取每个令牌的微秒数间隔
         return (double) TimeUnit.SECONDS.toMicros(1L) / this.stableIntervalMicros;
     }
 
@@ -103,10 +117,12 @@ public abstract class CloudLimiter {
         return 1.0D * (double) microsToWait / (double) TimeUnit.SECONDS.toMicros(1L);
     }
 
+    // 返回下一次获取一个令牌时间与当前时间的差值
     long reserve() {
         return this.reserve(1);
     }
 
+    // 返回下一次获取permits个令牌时间与当前时间的差值
     long reserve(int permits) {
         // 检查令牌数必须为整数
         checkPermits(permits);
@@ -147,6 +163,7 @@ public abstract class CloudLimiter {
         return true;
     }
 
+    // 检查令牌数必须为正数
     private static void checkPermits(int permits) {
         CloudPreconditions.checkArgument(permits > 0, "Requested permits must be positive");
     }
@@ -176,21 +193,22 @@ public abstract class CloudLimiter {
         return microsToNextFreeTicket;
     }
 
-    abstract long storedPermitsToWaitTime(double var1, double var3);
+    // 具体实现类，实现
+    abstract long storedPermitsToWaitTime(double d1, double d2);
 
     // TODO nowMicros为当前与上一次offset微秒的时间间隔数
     private void resync(long nowMicros) {
         // 如果此间隔数大于到下一次的剩余时间纳秒数执行下述操作（否则直接返回）
 
         if (nowMicros > this.nextFreeTicketMicros) {
-            System.out.println("1----------------------------------------------------------------");
             // 获取[最大令牌数]与[当前存储令牌数+]
+            /*System.out.println("1----------------------------------------------------------------");
             System.out.println("this.maxPermits ==" + this.maxPermits);
             System.out.println("this.storedPermits ==" + this.storedPermits);
             System.out.println("this.nowMicros ==" + nowMicros);
             System.out.println("this.nextFreeTicketMicros ==" + this.nextFreeTicketMicros);
             System.out.println("this.stableIntervalMicros ==" + this.stableIntervalMicros);
-            System.out.println("2----------------------------------------------------------------");
+            System.out.println("2----------------------------------------------------------------");*/
             this.storedPermits = Math.min(this.maxPermits, this.storedPermits + (double) (nowMicros - this.nextFreeTicketMicros) / this.stableIntervalMicros);
             // 将当前与上一次offset微秒的时间间隔数赋值给nextFreeTicketMicros
             this.nextFreeTicketMicros = nowMicros;
@@ -204,12 +222,16 @@ public abstract class CloudLimiter {
     }
 
     public String toString() {
-        return String.format("CloudLimiter[stableRate=%3.1fqps]", new Object[]{Double.valueOf(1000000.0D / this.stableIntervalMicros)});
+        return String.format("GoogleCloudLimiter[stableRate=%3.1fqps]", new Object[]{Double.valueOf(1000000.0D / this.stableIntervalMicros)});
     }
 
+    // 抽象方法，实现睡眠时钟，用于阻塞等待获取令牌时间
     abstract static class SleepingCloudTicker extends CloudTicker {
+        // 因为抽象方法没法直接new对象，但是可以使用类对象
         static final CloudLimiter.SleepingCloudTicker SYSTEM_CloudTicker = new CloudLimiter.SleepingCloudTicker() {
             public long read() {
+                // systemTicker()返回父类CloudTicker的SYSTEM_TICKER。父类read为return System.nanoTime();
+                // 获取当前系统nanoTime，即为启动到目前的nano时间
                 return systemTicker().read();
             }
 
@@ -225,14 +247,14 @@ public abstract class CloudLimiter {
         SleepingCloudTicker() {
         }
 
-        abstract void sleepMicrosUninterruptibly(long var1);
+        abstract void sleepMicrosUninterruptibly(long micros);
     }
 
     private static class Bursty extends CloudLimiter {
         final double maxBurstSeconds;// 默认为1.0
 
         // CloudTicker为初始启动时间ticker, maxBurstSeconds默认为1.0
-        Bursty(CloudLimiter.SleepingCloudTicker CloudTicker, double maxBurstSeconds) {
+        Bursty(SleepingCloudTicker CloudTicker, double maxBurstSeconds) {
             // 此处调用父类初始化
             super(CloudTicker);
             this.maxBurstSeconds = maxBurstSeconds;
@@ -242,9 +264,13 @@ public abstract class CloudLimiter {
         void doSetRate(double permitsPerSecond, double stableIntervalMicros) {
             // 将当前maxPermits保存到oldMaxPermits
             double oldMaxPermits = this.maxPermits;
-            // 计算当前maxPermits值
+            // 计算当前maxPermits值(最大令牌数量=用户设置令牌数与maxBurstSeconds比例系数)
             this.maxPermits = this.maxBurstSeconds * permitsPerSecond;
-            // 计算storedPermits值，如果oldMaxPermits值为0则返回0，否则为this.storedPermits * this.maxPermits / oldMaxPermits
+            // 计算storedPermits值，如果oldMaxPermits值为0则返回0，
+            // 否则为this.storedPermits * this.maxPermits / oldMaxPermits
+            // 即[当前保存的令牌数]与[当前最大令牌数/老的最大令牌数]的乘积
+            // 假设用户设置每秒钟的令牌数初始值permitsPerSecond为1000，当前maxPermits=此处maxBurstSeconds为1
+            // 那么
             this.storedPermits = oldMaxPermits == 0.0D ? 0.0D : this.storedPermits * this.maxPermits / oldMaxPermits;
         }
 
@@ -258,7 +284,7 @@ public abstract class CloudLimiter {
         private double slope;
         private double halfPermits;
 
-        WarmingUp(CloudLimiter.SleepingCloudTicker CloudTicker, long warmupPeriod, TimeUnit timeUnit) {
+        WarmingUp(SleepingCloudTicker CloudTicker, long warmupPeriod, TimeUnit timeUnit) {
             super(CloudTicker);
             this.warmupPeriodMicros = timeUnit.toMicros(warmupPeriod);
         }
@@ -297,7 +323,7 @@ public abstract class CloudLimiter {
 
     private static class Flow extends CloudLimiter {
 
-        Flow(CloudLimiter.SleepingCloudTicker CloudTicker) {
+        Flow(SleepingCloudTicker CloudTicker) {
             super(CloudTicker);
         }
 
@@ -309,7 +335,7 @@ public abstract class CloudLimiter {
         }
 
         public static CloudLimiter limiterPerSecond(FlowType flowLimit) {
-            return create(CloudLimiter.SleepingCloudTicker.SYSTEM_CloudTicker, flowLimit.getValue());
+            return create(SleepingCloudTicker.SYSTEM_CloudTicker, flowLimit.getValue());
         }
     }
 }
