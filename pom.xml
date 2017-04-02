@@ -25,15 +25,10 @@
         <guava.google.version>17.0</guava.google.version>
         <junit.version>4.5</junit.version>
         <junit.version>4.5</junit.version>
-        <repo-id>gome</repo-id>
-        <release-repo-name>gome release repository</release-repo-name>
-        <release-repo-url>http://10.128.11.68:8081/nexus/content/repositories/releases/</release-repo-url>
-        <snapshot-repo-name>gome snapshot repository</snapshot-repo-name>
-        <snapshot-repo-url>http://10.128.11.68:8081/nexus/content/repositories/snapshots/</snapshot-repo-url>
     </properties>
 
     <dependencies>
-       <dependency>
+        <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <version>${guava.google.version}</version>
@@ -54,19 +49,5 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
-    <distributionManagement>
-        <repository>
-            <id>${repo-id}</id>
-            <name>${release-repo-name}</name>
-            <url>${release-repo-url}</url>
-        </repository>
-
-        <snapshotRepository>
-            <id>${repo-id}</id>
-            <name>${snapshot-repo-name}</name>
-            <url>${snapshot-repo-url}</url>
-        </snapshotRepository>
-    </distributionManagement>
 
 </project>

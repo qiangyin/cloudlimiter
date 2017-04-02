@@ -1,8 +1,9 @@
 package com.cloudzone.cloudlimiter;
 
+import com.cloudzone.cloudlimiter.factory.CloudFactory;
+import com.cloudzone.cloudlimiter.limiter.CloudTicker;
+import com.cloudzone.cloudlimiter.limiter.RealTimeLimiter;
 import com.cloudzone.cloudlimiter.meter.BenchMark;
-import com.cloudzone.cloudlimiter.rate.CloudRateLimiter;
-import com.cloudzone.cloudlimiter.rate.CloudTicker;
 import org.junit.Test;
 
 import java.util.concurrent.ExecutorService;
@@ -18,7 +19,7 @@ public class TPSTest {
     final int threadCount = 1;
     final ExecutorService sendThreadPool = Executors.newFixedThreadPool(threadCount);
     static AtomicLong atoNum = new AtomicLong(0);
-    final static CloudRateLimiter cloudLimiter = CloudRateLimiter.create(500);
+    final static RealTimeLimiter cloudLimiter = CloudFactory.createRealTimeLimiter(100);
 
     @Test
     public void testSingleBenchMark() {

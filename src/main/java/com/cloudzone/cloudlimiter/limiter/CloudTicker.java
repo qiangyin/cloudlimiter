@@ -1,4 +1,4 @@
-package com.cloudzone.cloudlimiter.rate;
+package com.cloudzone.cloudlimiter.limiter;
 
 import java.util.concurrent.TimeUnit;
 
