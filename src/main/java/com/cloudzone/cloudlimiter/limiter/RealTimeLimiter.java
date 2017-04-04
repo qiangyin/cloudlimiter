@@ -68,5 +68,10 @@ public class RealTimeLimiter extends CloudLimiter {
     public double acquire(int permits) {
         return super.acquire(permits);
     }
+
+    @Override
+    public void setRate(double permitsPerSecond) {
+        super.setRate(permitsPerSecond);
+    }
 }
 
