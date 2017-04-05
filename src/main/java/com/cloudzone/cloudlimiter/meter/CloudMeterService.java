@@ -1,18 +1,21 @@
-/*
 package com.cloudzone.cloudlimiter.meter;
+
+import com.cloudzone.cloudlimiter.base.IntervalModel;
+import com.cloudzone.cloudlimiter.base.MeterListenner;
 
 import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
-*/
 /**
- * @author tantexian<my.oschina.net/tantexian>
- * @since 2017/4/2
- *//*
+ * @author tantexian, <my.oschina.net/tantexian>
+ * @since 2017/4/5
+ */
+public class CloudMeterService {
+    // 最大推送时间间隔
+    private final static long MaxTimeAcquireInterval = 60 * 1000;
 
-public class CloudMeter {
     private static final AtomicLong requestNum = new AtomicLong(0L);
 
     // 队列中保存最近的180秒的TPS值
@@ -32,20 +35,21 @@ public class CloudMeter {
 
     final static Timer timer = new Timer("CloudMeterTimer", true);
 
-    CloudMeter() {
-        start();
-    }
+    private MeterListenner meterListenner;
 
-    public static void start() {
-        meterPerSecond();
-        meterPerMinute();
+    // 默认推送秒间隔统计的数据
+    private IntervalModel intervalModel = IntervalModel.SECOND;
+
+
+    public void registerListener(MeterListenner meterListenner) {
+        this.meterListenner = meterListenner;
     }
 
     private static void meterPerSecond() {
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-                periodSecondList.addLast(CloudMeter.createperiod());
+                periodSecondList.addLast(CloudMeterService.createperiod());
 
                 if (periodSecondList.size() > 2) {
                     Long[] firstSnap = periodSecondList.removeFirst();
@@ -70,7 +74,7 @@ public class CloudMeter {
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-                periodMinuteList.addLast(CloudMeter.createperiod());
+                periodMinuteList.addLast(CloudMeterService.createperiod());
 
                 if (periodMinuteList.size() > 2) {
                     Long[] firstSnap = periodMinuteList.removeFirst();
@@ -140,5 +144,12 @@ public class CloudMeter {
             }
         }, 1000, 1000);
     }
+
+    class ProcessAcquireMeter implements Runnable {
+        @Override
+        public void run() {
+
+        }
+    }
+
 }
-*/
