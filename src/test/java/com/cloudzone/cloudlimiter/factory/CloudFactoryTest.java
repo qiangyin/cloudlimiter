@@ -47,12 +47,16 @@ public class CloudFactoryTest {
             public AcquireStatus acquireStats(List<Meterinfo> meterinfos) {
                 receiveNum.addAndGet(meterinfos.size());
                 if (meterinfos.size() > 0) {
-                    // 模拟第10-15条数据重复消费
-                    if (receiveNum.get() > 10 && receiveNum.get() < 15) {
-                        System.out.println("REACQUIRE_LATER" + meterinfos);
+                    // 模拟第10-20条数据重复消费
+                    if (receiveNum.get() > 10 && receiveNum.get() < 20) {
+                        for (Meterinfo info : meterinfos) {
+                            System.out.println("REACQUIRE_LATER" + info);
+                        }
                         return AcquireStatus.REACQUIRE_LATER;
                     }
-                    System.out.println(meterinfos);
+                    for (Meterinfo info : meterinfos) {
+                        System.out.println(info);
+                    }
                 }
 
                 return AcquireStatus.ACQUIRE_SUCCESS;
