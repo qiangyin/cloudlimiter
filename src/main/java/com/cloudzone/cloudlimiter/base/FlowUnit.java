@@ -1,4 +1,4 @@
-package com.cloudzone.cloudlimiter.limiter;
+package com.cloudzone.cloudlimiter.base;
 
 /**
  * 流量单位：BYTE/KB/MB/GB/TB/PB

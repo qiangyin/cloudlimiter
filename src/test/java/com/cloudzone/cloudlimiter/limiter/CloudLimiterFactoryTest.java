@@ -1,5 +1,6 @@
 package com.cloudzone.cloudlimiter.limiter;
 
+import com.cloudzone.cloudlimiter.base.FlowUnit;
 import com.cloudzone.cloudlimiter.factory.CloudFactory;
 import org.junit.Test;
 

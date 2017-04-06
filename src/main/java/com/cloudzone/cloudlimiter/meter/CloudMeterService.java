@@ -1,5 +1,6 @@
 package com.cloudzone.cloudlimiter.meter;
 
+import com.cloudzone.cloudlimiter.base.AcquireStatus;
 import com.cloudzone.cloudlimiter.base.IntervalModel;
 import com.cloudzone.cloudlimiter.base.MeterListenner;
 
@@ -18,8 +19,8 @@ public class CloudMeterService {
 
     private static final AtomicLong requestNum = new AtomicLong(0L);
 
-    // 队列中保存最近的180秒的TPS值
-    private static int secondQueueSize = 60 * 3;
+    // 队列中保存最近的300秒的TPS值
+    private static int secondQueueSize = 60 * 5;
     private static final Queue<Meterinfo> secondQueues = new LinkedBlockingQueue<Meterinfo>(secondQueueSize);
 
     // 队列中保存最近的10分钟的TPS值
@@ -37,15 +38,33 @@ public class CloudMeterService {
 
     private MeterListenner meterListenner;
 
+    public IntervalModel getIntervalModel() {
+        return intervalModel;
+    }
+
+    public void setIntervalModel(IntervalModel intervalModel) {
+        this.intervalModel = intervalModel;
+    }
+
     // 默认推送秒间隔统计的数据
     private IntervalModel intervalModel = IntervalModel.SECOND;
 
+
+    public CloudMeterService() {
+        start();
+    }
 
     public void registerListener(MeterListenner meterListenner) {
         this.meterListenner = meterListenner;
     }
 
-    private static void meterPerSecond() {
+    private void start() {
+        this.meterPerSecond();
+        this.meterPerMinute();
+        this.pushAcquireMeterinfo();
+    }
+
+    private void meterPerSecond() {
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
@@ -70,7 +89,7 @@ public class CloudMeterService {
         }, 1000, SECOND);
     }
 
-    private static void meterPerMinute() {
+    private void meterPerMinute() {
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
@@ -104,51 +123,63 @@ public class CloudMeterService {
         return snap;
     }
 
-    private static Queue<Meterinfo> acquireFormSecondQueues() {
-        Queue<Meterinfo> nowQueues = new LinkedBlockingQueue<Meterinfo>();
-        for (Meterinfo info : secondQueues) {
-            nowQueues.add(secondQueues.poll());
-        }
-        return nowQueues;
-    }
-
-    private static Queue<Meterinfo> acquireFormMinuteQueues() {
-        Queue<Meterinfo> nowQueues = new LinkedBlockingQueue<Meterinfo>();
-        for (Meterinfo info : minuteQueues) {
-            nowQueues.add(minuteQueues.poll());
-        }
-        return nowQueues;
-    }
-
     // 统计一次成功请求
-    public static void request() {
+    public void request() {
         requestNum.addAndGet(1);
     }
 
     // 统计nums次成功请求
-    public static void request(long nums) {
+    public void request(long nums) {
         requestNum.addAndGet(nums);
     }
 
-    // 打印统计信息
-    public static void printStats() {
+    /**
+     * 推送统计信息
+     *
+     * @author tantexian, <my.oschina.net/tantexian>
+     * @params
+     * @since 2017/4/6
+     */
+    private void pushAcquireMeterinfo() {
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-                for (Meterinfo meterinfo : acquireFormSecondQueues()) {
-                    System.out.println(meterinfo);
-                }
-                for (Meterinfo meterinfo : acquireFormMinuteQueues()) {
-                    System.out.println(meterinfo);
+                switch (intervalModel) {
+                    case ALL:
+                        processMeterQueue(IntervalModel.SECOND);
+                        processMeterQueue(IntervalModel.MINUTE);
+                        break;
+                    default:
+                        processMeterQueue(intervalModel);
+                        break;
                 }
             }
-        }, 1000, 1000);
+        }, 1000, 500);
     }
 
-    class ProcessAcquireMeter implements Runnable {
-        @Override
-        public void run() {
-
+    private void processMeterQueue(IntervalModel model) {
+        List<Meterinfo> meterList = new ArrayList<Meterinfo>();
+        Queue<Meterinfo> meterinfoQueue = secondQueues;
+        switch (model) {
+            case SECOND:
+                meterinfoQueue = secondQueues;
+                break;
+            case MINUTE:
+                meterinfoQueue = minuteQueues;
+                break;
+        }
+        for (Meterinfo info : meterinfoQueue) {
+            meterList.add(meterinfoQueue.peek());
+        }
+        AcquireStatus acquireStatus = this.meterListenner.acquireStats(meterList);
+        switch (acquireStatus) {
+            case ACQUIRE_SUCCESS:
+                for (Meterinfo info : meterList) {
+                    meterinfoQueue.remove(info);
+                }
+                break;
+            case REACQUIRE_LATER:
+                break;
         }
     }
 

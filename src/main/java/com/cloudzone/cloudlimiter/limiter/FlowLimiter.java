@@ -1,6 +1,8 @@
 package com.cloudzone.cloudlimiter.limiter;
 
 
+import com.cloudzone.cloudlimiter.base.FlowUnit;
+
 /**
  * 创建FlowLimiter流量控制类型的CloudRateLimiter
  *

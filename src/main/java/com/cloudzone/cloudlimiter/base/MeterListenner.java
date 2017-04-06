@@ -2,7 +2,7 @@ package com.cloudzone.cloudlimiter.base;
 
 import com.cloudzone.cloudlimiter.meter.Meterinfo;
 
-import java.util.Queue;
+import java.util.List;
 
 /**
  * MeterListenner 用于异步接收Meter统计数据.
@@ -11,5 +11,5 @@ import java.util.Queue;
  * @since 2017/4/5
  */
 public interface MeterListenner {
-    AcquireStatus acquireStats(Queue<Meterinfo> meterinfoQueues);
+    AcquireStatus acquireStats(List<Meterinfo> meterinfos);
 }

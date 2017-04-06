@@ -6,11 +6,11 @@ package com.cloudzone.cloudlimiter.base;
  */
 public enum AcquireStatus {
     /**
-     * Success consumption
+     * Success Acquire
      */
-    CONSUME_SUCCESS,
+    ACQUIRE_SUCCESS,
     /**
-     * Failure consumption,later try to consume
+     * Failure consumption,later try to Acquire
      */
-    RECONSUME_LATER;
+    REACQUIRE_LATER;
 }

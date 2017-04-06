@@ -1,6 +1,6 @@
 package com.cloudzone.cloudlimiter.limiter;
 
-import com.cloudzone.cloudlimiter.limiter.FlowUnit;
+import com.cloudzone.cloudlimiter.base.FlowUnit;
 import org.junit.Test;
 
 import java.util.concurrent.TimeUnit;

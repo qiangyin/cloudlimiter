@@ -1,8 +1,9 @@
 package com.cloudzone.cloudlimiter.factory;
 
 import com.cloudzone.cloudlimiter.limiter.FlowLimiter;
-import com.cloudzone.cloudlimiter.limiter.FlowUnit;
+import com.cloudzone.cloudlimiter.base.FlowUnit;
 import com.cloudzone.cloudlimiter.limiter.RealTimeLimiter;
+import com.cloudzone.cloudlimiter.meter.CloudMeterService;
 
 import java.util.concurrent.TimeUnit;
 
@@ -59,5 +60,13 @@ public class CloudFactory {
      */
     public static FlowLimiter createFlowLimiterPerHour(long size, FlowUnit flowUnit) {
         return new FlowLimiter(size, flowUnit, TimeUnit.DAYS.toSeconds(1));
+    }
+
+    /**
+     * 统计方法调用次数（时间间隔支持秒或者分钟）
+     *
+     */
+    public static CloudMeterService createCloudMeter() {
+        return new CloudMeterService();
     }
 }
