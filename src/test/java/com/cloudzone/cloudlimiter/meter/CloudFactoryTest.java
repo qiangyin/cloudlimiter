@@ -1,11 +1,10 @@
-package com.cloudzone.cloudlimiter.factory;
+package com.cloudzone.cloudlimiter.meter;
 
 import com.cloudzone.cloudlimiter.base.AcquireStatus;
 import com.cloudzone.cloudlimiter.base.IntervalModel;
 import com.cloudzone.cloudlimiter.base.MeterListenner;
+import com.cloudzone.cloudlimiter.factory.CloudFactory;
 import com.cloudzone.cloudlimiter.limiter.CloudTicker;
-import com.cloudzone.cloudlimiter.meter.CloudMeterService;
-import com.cloudzone.cloudlimiter.meter.Meterinfo;
 import org.junit.Test;
 
 import java.util.List;
