@@ -11,5 +11,9 @@ import java.util.List;
  * @since 2017/4/5
  */
 public interface MeterListenner {
+
+    /**
+     * 推送统计信息
+     */
     AcquireStatus acquireStats(List<Meterinfo> meterinfos);
 }

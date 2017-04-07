@@ -12,6 +12,27 @@ public class Meterinfo {
     private TimeUnit type;
     private long requestNum;
 
+    // 用于区分统计不同tag对应的请求值
+    private String tag;
+
+    @Override
+    public String toString() {
+        return "Meterinfo{" +
+                "nowDate=" + nowDate +
+                ", type=" + type +
+                ", requestNum=" + requestNum +
+                ", tag='" + tag + '\'' +
+                '}';
+    }
+
+    public String getTag() {
+        return tag;
+    }
+
+    public void setTag(String tag) {
+        this.tag = tag;
+    }
+
     public Date getNowDate() {
         return nowDate;
     }
@@ -36,8 +57,4 @@ public class Meterinfo {
         this.type = type;
     }
 
-    @Override
-    public String toString() {
-        return "[" + this.nowDate + " " + this.type + "] " + "requestNum = " + this.requestNum;
-    }
 }

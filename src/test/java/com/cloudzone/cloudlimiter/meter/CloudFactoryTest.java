@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class CloudFactoryTest {
     @Test
     public void createCloudMeter() throws Exception {
-        CloudMeterService cloudMeter = CloudFactory.createCloudMeter();
+        CloudMeter cloudMeter = CloudFactory.createCloudMeter();
         cloudMeter.setIntervalModel(IntervalModel.ALL);
         cloudMeter.registerListener(new MeterListenner() {
             @Override
@@ -37,7 +37,7 @@ public class CloudFactoryTest {
 
     @Test
     public void createCloudMeterAcquireLater() throws Exception {
-        CloudMeterService cloudMeter = CloudFactory.createCloudMeter();
+        CloudMeter cloudMeter = CloudFactory.createCloudMeter();
         cloudMeter.setIntervalModel(IntervalModel.ALL);
         cloudMeter.registerListener(new MeterListenner() {
             final AtomicInteger receiveNum = new AtomicInteger(0);

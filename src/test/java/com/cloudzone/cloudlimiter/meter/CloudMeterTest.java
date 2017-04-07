@@ -4,7 +4,6 @@ import com.cloudzone.cloudlimiter.base.AcquireStatus;
 import com.cloudzone.cloudlimiter.base.IntervalModel;
 import com.cloudzone.cloudlimiter.base.MeterListenner;
 import com.cloudzone.cloudlimiter.factory.CloudFactory;
-import com.cloudzone.cloudlimiter.limiter.CloudTicker;
 import com.cloudzone.cloudlimiter.limiter.RealTimeLimiter;
 import org.junit.Test;
 
@@ -14,15 +13,16 @@ import java.util.List;
  * @author tantexian<my.oschina.net/tantexian>
  * @since 2017/4/4
  */
-public class CloudMeterServiceTest {
-    final static private RealTimeLimiter realTimeLimiter = CloudFactory.createRealTimeLimiter(1000);
-    CloudMeterService cloudMeterService = new CloudMeterService();
+public class CloudMeterTest {
+    final static private RealTimeLimiter realTimeLimiter = CloudFactory.createRealTimeLimiter(100);
+    CloudMeter cloudMeter = CloudFactory.createCloudMeter();
 
     @Test
     public void printStats() throws Exception {
 
-        cloudMeterService.setIntervalModel(IntervalModel.ALL);
-        cloudMeterService.registerListener(new MeterListenner() {
+        cloudMeter.setIntervalModel(IntervalModel.ALL);
+        cloudMeter.setAcquireTag("mytag66");
+        cloudMeter.registerListener(new MeterListenner() {
             @Override
             public AcquireStatus acquireStats(List<Meterinfo> meterinfos) {
                 for (Meterinfo info : meterinfos) {
@@ -33,20 +33,21 @@ public class CloudMeterServiceTest {
         });
 
         for (int i = 0; i < 1000000; i++) {
-            /*if (i == 100) {
+            if (i == 100) {
                 realTimeLimiter.setRate(10);
                 System.out.println("setRate(10)");
-            } else if (i == 600) {
+            } else if (i == 150) {
                 realTimeLimiter.setRate(100);
                 System.out.println("setRate(100)");
-            } else if (i == 6000) {
+            } else if (i == 600) {
                 realTimeLimiter.setRate(1000);
                 System.out.println("setRate(1000)");
             }
-            realTimeLimiter.acquire();*/
-            CloudTicker.sleepSeconds(1);
-            cloudMeterService.request();
-
+            realTimeLimiter.acquire();
+            cloudMeter.request();
+            cloudMeter.request("mytag4");
+            cloudMeter.request("mytag66");
+            cloudMeter.request("mytag888");
         }
     }
 
