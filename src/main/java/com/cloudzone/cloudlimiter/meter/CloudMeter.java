@@ -8,7 +8,6 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -16,24 +15,17 @@ import java.util.concurrent.atomic.AtomicLong;
  * @since 2017/4/5
  */
 public class CloudMeter {
-    private static final AtomicLong requestNum = new AtomicLong(0L);
-
     private static final String DEFAUTTAG = "DefaultTag";
     private static final Map<String, AtomicLong> GlobalrequestTagMap = new ConcurrentHashMap<String, AtomicLong>();
 
-    // 队列中保存每个tag最近的60秒(最少)的TPS值
-    private final int SECNUM = 60;
-    private AtomicInteger secondQueueSize = new AtomicInteger(0);
+    // 队列中保存每个tag最近的60秒的TPS值
+    private final int LASTERSECONDNUM = 60;
 
-    // 队列中保存每个tag最近的10分钟(最少)的TPS值
-    private final int MINNUM = 10;
-    private AtomicInteger minuteQueueSize = new AtomicInteger(0);
+    // 队列中保存每个tag最近的10分钟的TPS值
+    private final int LASTERMINUTENUM = 10;
 
-
-    private static final Queue<Meterinfo> GlobalSecondQueues = new LinkedBlockingQueue<Meterinfo>();
-
-
-    private static final Queue<Meterinfo> GlobalMinuteQueues = new LinkedBlockingQueue<Meterinfo>();
+    private static final Map<String, LinkedBlockingQueue<Meterinfo>> GlobalSecondTagMap = new ConcurrentHashMap<String, LinkedBlockingQueue<Meterinfo>>();
+    private static final Map<String, LinkedBlockingQueue<Meterinfo>> GlobalMinuteTagMap = new ConcurrentHashMap<String, LinkedBlockingQueue<Meterinfo>>();
 
 
     final static Map<String, LinkedList<Long[]>> GlobalPeriodSecondTagMap = new ConcurrentHashMap<String, LinkedList<Long[]>>();
@@ -102,13 +94,11 @@ public class CloudMeter {
                         meterinfo.setNowDate(new Date(firstSnap[0]));
                         meterinfo.setType(TimeUnit.SECONDS);
                         meterinfo.setTag(tag);
-                        if (GlobalSecondQueues.size() > secondQueueSize.get()) {
-                            // 超出队列长度未处理，则丢弃最开始采集的数据
-                            GlobalSecondQueues.poll();
+                        if (GlobalSecondTagMap.get(tag).size() > LASTERSECONDNUM) {
+                            GlobalSecondTagMap.get(tag).poll();
                         }
-                        GlobalSecondQueues.add(meterinfo);
+                        GlobalSecondTagMap.get(tag).add(meterinfo);
                     }
-
                 }
             }
         }, 0, SECOND);
@@ -134,13 +124,11 @@ public class CloudMeter {
                         meterinfo.setNowDate(new Date(firstSnap[0]));
                         meterinfo.setType(TimeUnit.MINUTES);
                         meterinfo.setTag(tag);
-                        if (GlobalMinuteQueues.size() > secondQueueSize.get()) {
-                            // 超出队列长度未处理，则丢弃最开始采集的数据
-                            GlobalMinuteQueues.poll();
+                        if (GlobalSecondTagMap.get(tag).size() > LASTERMINUTENUM) {
+                            GlobalSecondTagMap.get(tag).poll();
                         }
-                        GlobalMinuteQueues.add(meterinfo);
+                        GlobalSecondTagMap.get(tag).add(meterinfo);
                     }
-
                 }
             }
         }, 0, MINUTE);
@@ -181,10 +169,7 @@ public class CloudMeter {
             // 设置一个新的tag
             requestTagNum.addAndGet(1);
             // 增加一个tag则，对应保存队列元素增加一倍
-            secondQueueSize.addAndGet(SECNUM);
-            minuteQueueSize.addAndGet(MINNUM);
-            GlobalPeriodSecondTagMap.putIfAbsent(tag, new LinkedList<Long[]>());
-            GlobalPeriodMinuteTagMap.putIfAbsent(tag, new LinkedList<Long[]>());
+            initMapWithTag(tag);
         } else {
             AtomicLong newRequestTagNum = GlobalrequestTagMap.get(tag);
             newRequestTagNum.addAndGet(1);
@@ -208,11 +193,8 @@ public class CloudMeter {
             // 设置一个新的tag
             requestTagNum.addAndGet(nums);
             // 增加一个tag则，对应保存队列元素增加一倍
-            secondQueueSize.addAndGet(SECNUM);
-            minuteQueueSize.addAndGet(MINNUM);
             // 如果当前tag不存在则添加
-            GlobalPeriodSecondTagMap.putIfAbsent(tag, new LinkedList<Long[]>());
-            GlobalPeriodMinuteTagMap.putIfAbsent(tag, new LinkedList<Long[]>());
+            initMapWithTag(tag);
         } else {
             AtomicLong newRequestTagNum = GlobalrequestTagMap.get(tag);
             newRequestTagNum.addAndGet(nums);
@@ -223,6 +205,14 @@ public class CloudMeter {
         if (tag.equals("*")) {
             throw new RuntimeException("You can not allow use \"*\" as tag !!!");
         }
+    }
+
+    private static void initMapWithTag(String tag) {
+        // 如果当前tag不存在则添加
+        GlobalPeriodSecondTagMap.putIfAbsent(tag, new LinkedList<Long[]>());
+        GlobalPeriodMinuteTagMap.putIfAbsent(tag, new LinkedList<Long[]>());
+        GlobalSecondTagMap.putIfAbsent(tag, new LinkedBlockingQueue<Meterinfo>());
+        GlobalMinuteTagMap.putIfAbsent(tag, new LinkedBlockingQueue<Meterinfo>());
     }
 
     /**
@@ -263,28 +253,33 @@ public class CloudMeter {
     // 根据model类型，推送对应数据给用户
     private void processMeterQueue(IntervalModel model) {
         List<Meterinfo> meterList = new ArrayList<Meterinfo>();
-        Queue<Meterinfo> meterinfoQueue = GlobalSecondQueues;
+        Map<String, LinkedBlockingQueue<Meterinfo>> meterSecondTagMap = new ConcurrentHashMap<String, LinkedBlockingQueue<Meterinfo>>();
         switch (model) {
             case SECOND:
-                meterinfoQueue = GlobalSecondQueues;
+                meterSecondTagMap = GlobalSecondTagMap;
                 break;
             case MINUTE:
-                meterinfoQueue = GlobalMinuteQueues;
+                meterSecondTagMap = GlobalMinuteTagMap;
                 break;
         }
 
-        for (Meterinfo info : meterinfoQueue) {
-            if (this.acquireTag.equals("*")) {
-                meterList.add(info);
-            } else if (info.getTag().equals(this.acquireTag)) {
-                meterList.add(info);
+        for (Map.Entry<String, LinkedBlockingQueue<Meterinfo>> entry : meterSecondTagMap.entrySet()) {
+            String tag = entry.getKey();
+            final LinkedBlockingQueue<Meterinfo> meterinfoQueue = entry.getValue();
+
+            // 如果当前推送的tag为*，或者当前tag与用户设置获取的tag相同则放置到推送列表中
+            if (this.acquireTag.equals("*") || this.acquireTag.equals(tag)) {
+                for (Meterinfo info : meterinfoQueue) {
+                    meterList.add(info);
+                }
             }
         }
+
         AcquireStatus acquireStatus = this.meterListenner.acquireStats(meterList);
         switch (acquireStatus) {
             case ACQUIRE_SUCCESS:
                 for (Meterinfo info : meterList) {
-                    meterinfoQueue.remove(info);
+                    meterSecondTagMap.get(info.getTag()).remove(info);
                 }
                 break;
             case REACQUIRE_LATER:
