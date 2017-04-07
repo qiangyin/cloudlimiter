@@ -87,6 +87,6 @@ CloudLimiter是成都基础平台架构开发的用于TPS、及流量控制和�
 ----------
 
 ### 联系我们
- :fa-comments-o: 成都基础平台架构 cdxxjcpt@gome.com.cn
+ :fa-comments-o: 成都基础平台架构
 
 ----------
