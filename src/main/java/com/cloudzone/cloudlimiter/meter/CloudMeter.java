@@ -16,7 +16,7 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class CloudMeter {
     private static final String DEFAUTTAG = "DefaultTag";
-    private static final Map<String, AtomicLong> GlobalrequestTagMap = new ConcurrentHashMap<String, AtomicLong>();
+    private static final ConcurrentHashMap<String, AtomicLong> GlobalrequestTagMap = new ConcurrentHashMap<String, AtomicLong>();
 
     // 队列中保存每个tag最近的60秒的TPS值
     private final int LASTERSECONDNUM = 60;
@@ -24,12 +24,12 @@ public class CloudMeter {
     // 队列中保存每个tag最近的10分钟的TPS值
     private final int LASTERMINUTENUM = 10;
 
-    private static final Map<String, LinkedBlockingQueue<Meterinfo>> GlobalSecondTagMap = new ConcurrentHashMap<String, LinkedBlockingQueue<Meterinfo>>();
-    private static final Map<String, LinkedBlockingQueue<Meterinfo>> GlobalMinuteTagMap = new ConcurrentHashMap<String, LinkedBlockingQueue<Meterinfo>>();
+    private static final ConcurrentHashMap<String, LinkedBlockingQueue<Meterinfo>> GlobalSecondTagMap = new ConcurrentHashMap<String, LinkedBlockingQueue<Meterinfo>>();
+    private static final ConcurrentHashMap<String, LinkedBlockingQueue<Meterinfo>> GlobalMinuteTagMap = new ConcurrentHashMap<String, LinkedBlockingQueue<Meterinfo>>();
 
 
-    final static Map<String, LinkedList<Long[]>> GlobalPeriodSecondTagMap = new ConcurrentHashMap<String, LinkedList<Long[]>>();
-    final static Map<String, LinkedList<Long[]>> GlobalPeriodMinuteTagMap = new ConcurrentHashMap<String, LinkedList<Long[]>>();
+    final static ConcurrentHashMap<String, LinkedList<Long[]>> GlobalPeriodSecondTagMap = new ConcurrentHashMap<String, LinkedList<Long[]>>();
+    final static ConcurrentHashMap<String, LinkedList<Long[]>> GlobalPeriodMinuteTagMap = new ConcurrentHashMap<String, LinkedList<Long[]>>();
 
 
     final static int SECOND = 1000;
@@ -253,17 +253,17 @@ public class CloudMeter {
     // 根据model类型，推送对应数据给用户
     private void processMeterQueue(IntervalModel model) {
         List<Meterinfo> meterList = new ArrayList<Meterinfo>();
-        Map<String, LinkedBlockingQueue<Meterinfo>> meterSecondTagMap = new ConcurrentHashMap<String, LinkedBlockingQueue<Meterinfo>>();
+        Map<String, LinkedBlockingQueue<Meterinfo>> meterSecondOrMinuteTagMap = new ConcurrentHashMap<String, LinkedBlockingQueue<Meterinfo>>();
         switch (model) {
             case SECOND:
-                meterSecondTagMap = GlobalSecondTagMap;
+                meterSecondOrMinuteTagMap = GlobalSecondTagMap;
                 break;
             case MINUTE:
-                meterSecondTagMap = GlobalMinuteTagMap;
+                meterSecondOrMinuteTagMap = GlobalMinuteTagMap;
                 break;
         }
 
-        for (Map.Entry<String, LinkedBlockingQueue<Meterinfo>> entry : meterSecondTagMap.entrySet()) {
+        for (Map.Entry<String, LinkedBlockingQueue<Meterinfo>> entry : meterSecondOrMinuteTagMap.entrySet()) {
             String tag = entry.getKey();
             final LinkedBlockingQueue<Meterinfo> meterinfoQueue = entry.getValue();
 
@@ -279,7 +279,7 @@ public class CloudMeter {
         switch (acquireStatus) {
             case ACQUIRE_SUCCESS:
                 for (Meterinfo info : meterList) {
-                    meterSecondTagMap.get(info.getTag()).remove(info);
+                    meterSecondOrMinuteTagMap.get(info.getTag()).remove(info);
                 }
                 break;
             case REACQUIRE_LATER:
