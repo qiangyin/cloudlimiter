@@ -33,7 +33,6 @@ public class CloudMeter {
     final static int SECOND = 1000;
     final static int MINUTE = 1000 * 60;
 
-    final static Timer timer = new Timer("CloudMeterTimer", true);
 
     private final ScheduledExecutorService scheduledExecutorService;
 
@@ -239,7 +238,7 @@ public class CloudMeter {
      * @since 2017/4/6
      */
     private void pushAcquireMeterinfo() {
-        timer.scheduleAtFixedRate(new TimerTask() {
+        scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
                 switch (intervalModel) {
@@ -252,7 +251,7 @@ public class CloudMeter {
                         break;
                 }
             }
-        }, 1000, 500);
+        }, 1000, 500, TimeUnit.MILLISECONDS);
     }
 
     // 根据model类型，推送对应数据给用户
