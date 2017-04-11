@@ -5,9 +5,7 @@ import com.cloudzone.cloudlimiter.base.IntervalModel;
 import com.cloudzone.cloudlimiter.base.MeterListenner;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -37,6 +35,9 @@ public class CloudMeter {
 
     final static Timer timer = new Timer("CloudMeterTimer", true);
 
+    private final ScheduledExecutorService scheduledExecutorService;
+
+
     private MeterListenner meterListenner;
 
     public IntervalModel getIntervalModel() {
@@ -62,7 +63,12 @@ public class CloudMeter {
     private String acquireTag = "*";
 
     public CloudMeter() {
+        this.scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
         start();
+    }
+
+    public void shutdown() {
+        this.scheduledExecutorService.shutdown();
     }
 
     public void registerListener(MeterListenner meterListenner) {
@@ -76,7 +82,7 @@ public class CloudMeter {
     }
 
     private void meterPerSecond() {
-        timer.scheduleAtFixedRate(new TimerTask() {
+        scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
                 for (Map.Entry<String, LinkedList<Long[]>> entry : GlobalPeriodSecondTagMap.entrySet()) {
@@ -101,12 +107,11 @@ public class CloudMeter {
                     }
                 }
             }
-        }, 0, SECOND);
+        }, 0, 1, TimeUnit.SECONDS);
     }
 
-
     private void meterPerMinute() {
-        timer.scheduleAtFixedRate(new TimerTask() {
+        scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
                 for (Map.Entry<String, LinkedList<Long[]>> entry : GlobalPeriodMinuteTagMap.entrySet()) {
@@ -131,7 +136,7 @@ public class CloudMeter {
                     }
                 }
             }
-        }, 0, MINUTE);
+        }, 0, 1, TimeUnit.MINUTES);
     }
 
     private static Map<String, Long[]> createPeriodTagMap() {

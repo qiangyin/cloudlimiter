@@ -19,7 +19,7 @@ public class currentMapTest {
 
     @Test
     public void test1() {
-        Map<Integer, AtomicLong> mymap = new ConcurrentHashMap<Integer, AtomicLong>();
+        ConcurrentHashMap<Integer, AtomicLong> mymap = new ConcurrentHashMap<Integer, AtomicLong>();
         mymap.put(1, new AtomicLong(5));
         // 如果不存在该key，则put成功，否则返回老值
         AtomicLong val = new AtomicLong(8);
