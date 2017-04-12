@@ -27,6 +27,7 @@ public class CloudFactory {
      * @param size:     限流数值大小
      * @param flowUnit: 限流单位BYTE/KB/MB/GB/TB/PB
      */
+    @Deprecated
     public static FlowLimiter createFlowLimiter(long size, FlowUnit flowUnit) {
         return createFlowLimiterPerHour(size, flowUnit);
     }
@@ -47,6 +48,7 @@ public class CloudFactory {
      * @param size:     限流数值大小
      * @param flowUnit: 限流单位BYTE/KB/MB/GB/TB/PB
      */
+    @Deprecated
     public static FlowLimiter createFlowLimiterPerMinute(long size, FlowUnit flowUnit) {
         return new FlowLimiter(size, flowUnit, TimeUnit.MINUTES.toSeconds(1));
     }
@@ -58,6 +60,7 @@ public class CloudFactory {
      * @param size:     限流数值大小
      * @param flowUnit: 限流单位BYTE/KB/MB/GB/TB/PB
      */
+    @Deprecated
     public static FlowLimiter createFlowLimiterPerHour(long size, FlowUnit flowUnit) {
         return new FlowLimiter(size, flowUnit, TimeUnit.DAYS.toSeconds(1));
     }

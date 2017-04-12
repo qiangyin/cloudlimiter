@@ -171,7 +171,6 @@ public abstract class CloudLimiter {
     // 检测permits必须为正数
     private static void checkPermits(int permits) {
         if (permits < 0) {
-            System.out.println("permits ===========" + permits);
             throw new RuntimeException("Requested permits must be positive");
         }
     }

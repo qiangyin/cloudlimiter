@@ -1,13 +1,9 @@
 package com.cloudzone.cloudlimiter.meter;
 
-import com.cloudzone.cloudlimiter.base.AcquireStatus;
 import com.cloudzone.cloudlimiter.base.IntervalModel;
-import com.cloudzone.cloudlimiter.base.MeterListenner;
 import com.cloudzone.cloudlimiter.factory.CloudFactory;
 import com.cloudzone.cloudlimiter.limiter.RealTimeLimiter;
 import org.junit.Test;
-
-import java.util.List;
 
 /**
  * @author tantexian<my.oschina.net/tantexian>
@@ -22,7 +18,7 @@ public class CloudMeterTest {
 
         cloudMeter.setIntervalModel(IntervalModel.ALL);
         cloudMeter.setAcquireTag("mytag66");
-        cloudMeter.registerListener(new MeterListenner() {
+        /*cloudMeter.registerListener(new MeterListenner() {
             @Override
             public AcquireStatus acquireStats(List<Meterinfo> meterinfos) {
                 for (Meterinfo info : meterinfos) {
@@ -30,7 +26,9 @@ public class CloudMeterTest {
                 }
                 return AcquireStatus.ACQUIRE_SUCCESS;
             }
-        });
+        });*/
+
+        cloudMeter.registerListener(new MeterListennerIpml());
 
         for (int i = 0; i < 1000000; i++) {
             if (i == 100) {
