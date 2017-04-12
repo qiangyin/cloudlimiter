@@ -2,7 +2,7 @@ package com.cloudzone.cloudlimiter.meter;
 
 import com.cloudzone.cloudlimiter.base.AcquireStatus;
 import com.cloudzone.cloudlimiter.base.IntervalModel;
-import com.cloudzone.cloudlimiter.base.MeterListenner;
+import com.cloudzone.cloudlimiter.base.MeterListener;
 import com.cloudzone.cloudlimiter.factory.CloudFactory;
 import com.cloudzone.cloudlimiter.limiter.CloudTicker;
 import org.junit.Test;
@@ -19,7 +19,7 @@ public class CloudFactoryTest {
     public void createCloudMeter() throws Exception {
         CloudMeter cloudMeter = CloudFactory.createCloudMeter();
         cloudMeter.setIntervalModel(IntervalModel.ALL);
-        cloudMeter.registerListener(new MeterListenner() {
+        cloudMeter.registerListener(new MeterListener() {
             @Override
             public AcquireStatus acquireStats(List<Meterinfo> meterinfos) {
                 if (meterinfos.size() > 0) {
@@ -39,7 +39,7 @@ public class CloudFactoryTest {
     public void createCloudMeterAcquireLater() throws Exception {
         CloudMeter cloudMeter = CloudFactory.createCloudMeter();
         cloudMeter.setIntervalModel(IntervalModel.ALL);
-        cloudMeter.registerListener(new MeterListenner() {
+        cloudMeter.registerListener(new MeterListener() {
             final AtomicInteger receiveNum = new AtomicInteger(0);
 
             @Override

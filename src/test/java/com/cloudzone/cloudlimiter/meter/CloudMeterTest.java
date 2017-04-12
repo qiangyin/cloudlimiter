@@ -2,7 +2,6 @@ package com.cloudzone.cloudlimiter.meter;
 
 import com.cloudzone.cloudlimiter.base.IntervalModel;
 import com.cloudzone.cloudlimiter.factory.CloudFactory;
-import com.cloudzone.cloudlimiter.limiter.CloudTicker;
 import com.cloudzone.cloudlimiter.limiter.RealTimeLimiter;
 import org.junit.Test;
 
@@ -17,22 +16,18 @@ public class CloudMeterTest {
     @Test
     public void printStats() throws Exception {
 
-        cloudMeter.registerListener(new MeterListennerIpml());
+        cloudMeter.registerListener(new MeterListenerIpml());
 
         cloudMeter.setIntervalModel(IntervalModel.ALL);
-        cloudMeter.setAcquireTag("mytag66");
-        /*cloudMeter.registerListener(new MeterListenner() {
-            @Override
-            public AcquireStatus acquireStats(List<Meterinfo> meterinfos) {
-                for (Meterinfo info : meterinfos) {
-                    System.out.println(info);
-                }
-                return AcquireStatus.ACQUIRE_SUCCESS;
-            }
-        });*/
+      /*  Topic topic = new Topic();
+        topic.setTag("*");*/
+        //cloudMeter.setAcquireTopic("mytag66");
+        Topic topic = new Topic();
+        topic.setTag("mytag777");
+        topic.setType("sendMsg");
+        cloudMeter.setAcquireTopic(topic);
 
-        CloudTicker.sleepSeconds(5);
-        cloudMeter.registerListener(new MeterListennerIpml());
+        // cloudMeter.setAcquireTopic("*");
 
         for (int i = 0; i < 1000000; i++) {
             if (i == 100) {
@@ -46,6 +41,12 @@ public class CloudMeterTest {
                 System.out.println("setRate(1000)");
             }
             realTimeLimiter.acquire();
+
+            Topic topic1 = new Topic();
+            topic1.setTag("mytag777");
+            topic1.setType("sendMsg");
+            cloudMeter.request(topic1);
+
             cloudMeter.request();
             cloudMeter.request("mytag4");
             cloudMeter.request("mytag66");

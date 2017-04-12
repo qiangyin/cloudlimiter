@@ -9,28 +9,27 @@ import java.util.concurrent.TimeUnit;
  */
 public class Meterinfo {
     private Date nowDate;
-    private TimeUnit type;
+    // 用于表示统计的不同类型，例如：按照秒间隔统计，按照分钟间隔统计
+    private TimeUnit timeUnitType;
     private long requestNum;
 
-    // 用于区分统计不同tag对应的请求值
-    private String tag;
-
+    // 用于区分不同统计主题
     @Override
     public String toString() {
         return "Meterinfo{" +
                 "nowDate=" + nowDate +
-                ", type=" + type +
+                ", timeUnitType=" + timeUnitType +
                 ", requestNum=" + requestNum +
-                ", tag='" + tag + '\'' +
+                ", topic=" + topic +
                 '}';
+    }private Topic topic;
+
+    public Topic getTopic() {
+        return topic;
     }
 
-    public String getTag() {
-        return tag;
-    }
-
-    public void setTag(String tag) {
-        this.tag = tag;
+    public void setTopic(Topic topic) {
+        this.topic = topic;
     }
 
     public Date getNowDate() {
@@ -49,12 +48,12 @@ public class Meterinfo {
         this.requestNum = requestNum;
     }
 
-    public TimeUnit getType() {
-        return type;
+    public TimeUnit getTimeUnitType() {
+        return timeUnitType;
     }
 
-    public void setType(TimeUnit type) {
-        this.type = type;
+    public void setTimeUnitType(TimeUnit timeUnitType) {
+        this.timeUnitType = timeUnitType;
     }
 
 }
