@@ -2,6 +2,7 @@ package com.cloudzone.cloudlimiter.meter;
 
 import com.cloudzone.cloudlimiter.base.IntervalModel;
 import com.cloudzone.cloudlimiter.factory.CloudFactory;
+import com.cloudzone.cloudlimiter.limiter.CloudTicker;
 import com.cloudzone.cloudlimiter.limiter.RealTimeLimiter;
 import org.junit.Test;
 
@@ -16,6 +17,8 @@ public class CloudMeterTest {
     @Test
     public void printStats() throws Exception {
 
+        cloudMeter.registerListener(new MeterListennerIpml());
+
         cloudMeter.setIntervalModel(IntervalModel.ALL);
         cloudMeter.setAcquireTag("mytag66");
         /*cloudMeter.registerListener(new MeterListenner() {
@@ -28,6 +31,7 @@ public class CloudMeterTest {
             }
         });*/
 
+        CloudTicker.sleepSeconds(5);
         cloudMeter.registerListener(new MeterListennerIpml());
 
         for (int i = 0; i < 1000000; i++) {

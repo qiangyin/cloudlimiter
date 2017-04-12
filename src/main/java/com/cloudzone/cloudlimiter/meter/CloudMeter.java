@@ -75,9 +75,6 @@ public class CloudMeter {
     }
 
     private void start() {
-        if (this.meterListenner == null) {
-            throw new RuntimeException("The meterListenner is null, call method registerListener（）to set the value before start!!!");
-        }
         this.meterPerSecond();
         this.meterPerMinute();
         this.pushAcquireMeterinfo();
@@ -110,7 +107,7 @@ public class CloudMeter {
                         }
                     }
                 } catch (Exception e) {
-                    System.out.println("meterPerMinute" + e);
+                    e.printStackTrace();
                 }
             }
         }, 0, 1, TimeUnit.SECONDS);
@@ -143,7 +140,7 @@ public class CloudMeter {
                         }
                     }
                 } catch (Exception e) {
-                    System.out.println("meterPerMinute" + e);
+                    e.printStackTrace();
                 }
 
             }
@@ -264,7 +261,7 @@ public class CloudMeter {
                             break;
                     }
                 } catch (Exception e) {
-                    System.out.println("pushAcquireMeterinfo" + e);
+                    e.printStackTrace();
                 }
 
             }
