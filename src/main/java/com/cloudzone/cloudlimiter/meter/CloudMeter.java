@@ -75,6 +75,9 @@ public class CloudMeter {
     }
 
     private void start() {
+        if (this.meterListenner == null) {
+            throw new RuntimeException("The meterListenner is null, call registerListener before start!!!");
+        }
         this.meterPerSecond();
         this.meterPerMinute();
         this.pushAcquireMeterinfo();
