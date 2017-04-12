@@ -1,5 +1,6 @@
 package com.cloudzone.cloudlimiter.meter;
 
+import com.cloudzone.cloudlimiter.base.IntervalModel;
 import com.cloudzone.cloudlimiter.factory.CloudFactory;
 import com.cloudzone.cloudlimiter.limiter.CloudTicker;
 import com.cloudzone.cloudlimiter.limiter.RealTimeLimiter;
@@ -24,13 +25,15 @@ public class MultiThreadTest {
                 @Override
                 public void run() {
                     CloudMeter cloudMeter = CloudFactory.createCloudMeter();
+                    cloudMeter.setIntervalModel(IntervalModel.ALL);
+                    cloudMeter.setAcquireTopic("topicTag1", "producer");
                     while (true) {
 //                        limiter.acquire();
-                        CloudTicker.sleepMillis(10);
+                        CloudTicker.sleepMillis(100);
                         cloudMeter.registerListener(new MeterListenerIpml());
 
                         int index = (new Random()).nextInt(3);
-                        cloudMeter.request("topicTag" + index);
+                        cloudMeter.request("topicTag" + index, "producer");
                     }
                 }
             });

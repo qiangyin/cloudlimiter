@@ -14,15 +14,21 @@ public class Meterinfo {
     private long requestNum;
 
     // 用于区分不同统计主题
-    @Override
-    public String toString() {
-        return "Meterinfo{" +
-                "nowDate=" + nowDate +
-                ", timeUnitType=" + timeUnitType +
-                ", requestNum=" + requestNum +
-                ", topic=" + topic +
-                '}';
-    }private Topic topic;
+    private Topic topic;
+
+    // Topic的tag字段
+    private String tag;
+
+    // Topic的type字段
+    private String type;
+
+    public String getTag() {
+        return this.topic.getTag();
+    }
+
+    public String getType() {
+        return this.topic.getType();
+    }
 
     public Topic getTopic() {
         return topic;
@@ -56,4 +62,15 @@ public class Meterinfo {
         this.timeUnitType = timeUnitType;
     }
 
+    @Override
+    public String toString() {
+        return "Meterinfo{" +
+                "nowDate=" + nowDate +
+                ", timeUnitType=" + timeUnitType +
+                ", requestNum=" + requestNum +
+                ", topic=" + topic +
+                ", tag='" + this.getTag() + '\'' +
+                ", type='" + this.getType() + '\'' +
+                '}';
+    }
 }

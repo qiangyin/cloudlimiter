@@ -68,6 +68,13 @@ public class CloudMeter {
         this.acquireTopic = topic;
     }
 
+    public void setAcquireTopic(String acquireTopicTag, String acquireTopicType) {
+        final Topic topic = new Topic();
+        topic.setTag(acquireTopicTag);
+        topic.setType(acquireTopicType);
+        this.acquireTopic = topic;
+    }
+
     // 推送统计信息的对应tag(默认为推送所有tag信息)
     private Topic acquireTopic;
 
@@ -82,7 +89,6 @@ public class CloudMeter {
     public void registerListener(MeterListener meterListener) {
         this.meterListener = meterListener;
         this.pushAcquireMeterinfo();
-
     }
 
     private static void startOnce() {
@@ -181,6 +187,13 @@ public class CloudMeter {
         request(DEFAUTTOPIC);
     }
 
+    // 统计一次成功请求, 如果没有tag参数则当做DEFAUTTAG相同类型统计
+    public void request(String topicTag, String topicType) {
+        Topic topic = new Topic();
+        topic.setTag(topicTag);
+        topic.setType(topicType);
+        request(topic);
+    }
 
     // 统计一次成功请求, 如果没有tag参数则当做DEFAUTTAG相同类型统计
     public void request(String topicTag) {
@@ -213,7 +226,7 @@ public class CloudMeter {
         initMapWithTopic(topic);
         AtomicLong requestTopicNum = GlobalrequestTopicMap.get(topic);
         requestTopicNum.addAndGet(nums);
-       // System.out.println("topic ==" + topic + " requestTopicNum == " + requestTopicNum);
+        // System.out.println("topic ==" + topic + " requestTopicNum == " + requestTopicNum);
     }
 
     private static void checkTopic(Topic topic) {
