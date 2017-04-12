@@ -30,7 +30,11 @@ public class Topic {
     public boolean equals(Object obj) {
         if (obj instanceof Topic) {
             Topic topic1 = (Topic) obj;
-            if (this.tag == topic1.tag) {
+            if (this.tag == null) {
+                Exception exception = new RuntimeException("topic == null !!!");
+                exception.printStackTrace();
+            }
+            if (this.tag.equals(topic1.tag)) {
                 return true;
             }
         }

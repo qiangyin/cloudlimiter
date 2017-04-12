@@ -8,6 +8,8 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 
+import static com.google.common.collect.ComparisonChain.start;
+
 /**
  * @author tantexian, <my.oschina.net/tantexian>
  * @since 2017/4/5
@@ -18,10 +20,10 @@ public class CloudMeter {
     private static final ConcurrentHashMap<Topic, AtomicLong> GlobalrequestTopicMap = new ConcurrentHashMap<Topic, AtomicLong>();
 
     // 队列中保存每个tag最近的60秒的TPS值
-    private final int LASTERSECONDNUM = 60;
+    private static final int LASTERSECONDNUM = 60;
 
     // 队列中保存每个tag最近的10分钟的TPS值
-    private final int LASTERMINUTENUM = 10;
+    private static final int LASTERMINUTENUM = 10;
 
     private static final ConcurrentHashMap<Topic, LinkedBlockingQueue<Meterinfo>> GlobalSecondTopicMap = new ConcurrentHashMap<Topic, LinkedBlockingQueue<Meterinfo>>();
     private static final ConcurrentHashMap<Topic, LinkedBlockingQueue<Meterinfo>> GlobalMinuteTopicMap = new ConcurrentHashMap<Topic, LinkedBlockingQueue<Meterinfo>>();
@@ -35,8 +37,9 @@ public class CloudMeter {
     final static int MINUTE = 1000 * 60;
 
 
-    private final ScheduledExecutorService scheduledExecutorService;
-
+    private final static ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+    private static volatile boolean isStart = false;
+    private static volatile boolean isPush = false;
 
     private MeterListener meterListener;
 
@@ -69,10 +72,7 @@ public class CloudMeter {
     private Topic acquireTopic;
 
     public CloudMeter() {
-        DEFAUTTOPIC = new Topic();
-        DEFAUTTOPIC.setTag("DefautTopicTag");
-        this.scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
-        start();
+        startOnce();
     }
 
     public void shutdown() {
@@ -85,12 +85,17 @@ public class CloudMeter {
 
     }
 
-    private void start() {
-        this.meterPerSecond();
-        this.meterPerMinute();
+    private static void startOnce() {
+        if (isStart == false) {
+            isStart = true;
+            DEFAUTTOPIC = new Topic();
+            DEFAUTTOPIC.setTag("DefautTopicTag");
+            meterPerSecond();
+            meterPerMinute();
+        }
     }
 
-    private void meterPerSecond() {
+    private static void meterPerSecond() {
         scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
@@ -123,7 +128,7 @@ public class CloudMeter {
         }, 0, 1, TimeUnit.SECONDS);
     }
 
-    private void meterPerMinute() {
+    private static void meterPerMinute() {
         scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
@@ -143,10 +148,10 @@ public class CloudMeter {
                             meterinfo.setNowDate(new Date(firstSnap[0]));
                             meterinfo.setTimeUnitType(TimeUnit.MINUTES);
                             meterinfo.setTopic(topic);
-                            if (GlobalSecondTopicMap.get(topic).size() > LASTERMINUTENUM) {
-                                GlobalSecondTopicMap.get(topic).poll();
+                            if (GlobalMinuteTopicMap.get(topic).size() > LASTERMINUTENUM) {
+                                GlobalMinuteTopicMap.get(topic).poll();
                             }
-                            GlobalSecondTopicMap.get(topic).add(meterinfo);
+                            GlobalMinuteTopicMap.get(topic).add(meterinfo);
                         }
                     }
                 } catch (Exception e) {
@@ -173,7 +178,7 @@ public class CloudMeter {
 
     // 统计一次成功请求, 如果没有tag参数则当做DEFAUTTAG相同类型统计
     public void request() {
-        request(DEFAUTTOPIC, 1);
+        request(DEFAUTTOPIC);
     }
 
 
@@ -181,30 +186,18 @@ public class CloudMeter {
     public void request(String topicTag) {
         Topic topic = new Topic();
         topic.setTag(topicTag);
-        request(topic, 1);
+        request(topic);
     }
 
     /**
-     * 统计一次成功请求, 通过tag来区分统计
+     * 统计一次成功请求, 通过topic来区分统计
      *
      * @author tantexian, <my.oschina.net/tantexian>
      * @params tag 用于区别统计、注意不能为"*"
      * @since 2017/4/7
      */
     public void request(Topic topic) {
-        checkTopic(topic);
-        // putIfAbsent如果不存在当前put的key值，则put成功，返回null值
-        // 如果当前map已经存在该key，那么返回已存在key对应的value值
-        AtomicLong requestTopicNum = GlobalrequestTopicMap.putIfAbsent(topic, new AtomicLong(0));
-        if (requestTopicNum != null) {
-            // 设置一个新的tag
-            requestTopicNum.addAndGet(1);
-            // 增加一个tag则，对应保存队列元素增加一倍
-            initMapWithTopic(topic);
-        } else {
-            AtomicLong newRequestTopicNum = GlobalrequestTopicMap.get(topic);
-            newRequestTopicNum.addAndGet(1);
-        }
+        request(topic, 1);
     }
 
 
@@ -217,20 +210,10 @@ public class CloudMeter {
      * @since 2017/4/7
      */
     public void request(Topic topic, long nums) {
-        checkTopic(topic);
-        // putIfAbsent如果不存在当前put的key值，则put成功，返回null值
-        // 如果当前map已经存在该key，那么返回已存在key对应的value值
-        AtomicLong requestTopicNum = GlobalrequestTopicMap.putIfAbsent(topic, new AtomicLong(0));
-        if (requestTopicNum != null) {
-            // 设置一个新的tag
-            requestTopicNum.addAndGet(nums);
-            // 增加一个tag则，对应保存队列元素增加一倍
-            // 如果当前tag不存在则添加
-            initMapWithTopic(topic);
-        } else {
-            AtomicLong newRequestTopicNum = GlobalrequestTopicMap.get(topic);
-            newRequestTopicNum.addAndGet(nums);
-        }
+        initMapWithTopic(topic);
+        AtomicLong requestTopicNum = GlobalrequestTopicMap.get(topic);
+        requestTopicNum.addAndGet(nums);
+       // System.out.println("topic ==" + topic + " requestTopicNum == " + requestTopicNum);
     }
 
     private static void checkTopic(Topic topic) {
@@ -249,8 +232,11 @@ public class CloudMeter {
 
     }
 
+    // 如果当前tag不存在则添加
     private static void initMapWithTopic(Topic topic) {
-        // 如果当前tag不存在则添加
+        // putIfAbsent如果不存在当前put的key值，则put成功，返回null值
+        // 如果当前map已经存在该key，那么返回已存在key对应的value值
+        GlobalrequestTopicMap.putIfAbsent(topic, new AtomicLong(0));
         GlobalPeriodSecondTopicMap.putIfAbsent(topic, new LinkedList<Long[]>());
         GlobalPeriodMinuteTopicMap.putIfAbsent(topic, new LinkedList<Long[]>());
         GlobalSecondTopicMap.putIfAbsent(topic, new LinkedBlockingQueue<Meterinfo>());
@@ -276,7 +262,10 @@ public class CloudMeter {
      * @since 2017/4/6
      */
     private void pushAcquireMeterinfo() {
-        push();
+        if (isPush == false) {
+            isPush = true;
+            push();
+        }
     }
 
     private void push() {
@@ -314,18 +303,21 @@ public class CloudMeter {
                 break;
         }
 
-        //        System.out.println("meterSecondOrMinuteTopicMap == " + meterSecondOrMinuteTopicMap);
+        // System.out.println("meterSecondOrMinuteTopicMap == " + meterSecondOrMinuteTopicMap);
         for (Map.Entry<Topic, LinkedBlockingQueue<Meterinfo>> entry : meterSecondOrMinuteTopicMap.entrySet()) {
             Topic topic = entry.getKey();
             final LinkedBlockingQueue<Meterinfo> meterinfoQueue = entry.getValue();
 
-            // 如果当前推送的tag为*，或者当前tag与用户设置获取的tag相同则放置到推送列表中
-            if (this.acquireTopic.getTag().equals("*") || this.acquireTopic.equals(topic)) {
-                boolean needPush = false;
-                if (this.acquireTopic.getType() == null || this.acquireTopic.getType() != null && this.acquireTopic.getType().equals(topic.getType())) {
+            // 如果当前acquireTopic==null，或者Topic的tag为*，推送所有信息
+            // 如果当前tag与用户设置获取的tag相同，或者acquireTopic的key与当前信息key相同则放置到推送列表中
+            boolean needPush = false;
+            if (this.acquireTopic == null || this.acquireTopic.getTag().equals("*") || this.acquireTopic.equals(topic)) {
+                if (this.acquireTopic == null) {
                     needPush = true;
-
+                } else if (this.acquireTopic.getType() == null || this.acquireTopic.getType() != null && this.acquireTopic.getType().equals(topic.getType())) {
+                    needPush = true;
                 }
+
                 if (needPush) {
                     for (Meterinfo info : meterinfoQueue) {
                         meterList.add(info);

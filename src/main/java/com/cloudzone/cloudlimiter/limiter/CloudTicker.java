@@ -71,11 +71,23 @@ public abstract class CloudTicker {
      * 阻塞睡眠sleepForSecond秒
      *
      * @author tantexian, <my.oschina.net/tantexian>
-     * @params sleepForMicros 睡眠的微秒数
+     * @params sleepForSecond 睡眠的秒数
      * @since 2017/4/1
      */
     public static void sleepSeconds(double sleepForSecond) {
         long sleepForMicrs = (long) (sleepForSecond * 1000 * 1000);
+        sleepMicros(sleepForMicrs);
+    }
+
+    /**
+     * 阻塞睡眠sleepForMills秒
+     *
+     * @author tantexian, <my.oschina.net/tantexian>
+     * @params sleepForMicros 睡眠的微秒数
+     * @since 2017/4/1
+     */
+    public static void sleepMillis(double sleepForMills) {
+        long sleepForMicrs = (long) (sleepForMills * 1000);
         sleepMicros(sleepForMicrs);
     }
 
