@@ -79,7 +79,6 @@ public class CloudMeter {
     private void start() {
         this.meterPerSecond();
         this.meterPerMinute();
-        this.pushAcquireMeterinfo();
     }
 
     private void meterPerSecond() {
