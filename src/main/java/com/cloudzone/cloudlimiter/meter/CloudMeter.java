@@ -72,6 +72,8 @@ public class CloudMeter {
 
     public void registerListener(MeterListenner meterListenner) {
         this.meterListenner = meterListenner;
+        this.pushAcquireMeterinfo();
+
     }
 
     private void start() {
@@ -247,6 +249,10 @@ public class CloudMeter {
      * @since 2017/4/6
      */
     private void pushAcquireMeterinfo() {
+        push();
+    }
+
+    private void push() {
         scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
