@@ -84,26 +84,30 @@ public class CloudMeter {
         scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
-                for (Map.Entry<String, LinkedList<Long[]>> entry : GlobalPeriodSecondTagMap.entrySet()) {
-                    String tag = entry.getKey();
-                    LinkedList<Long[]> secondList = entry.getValue();
-                    Long[] snap = CloudMeter.createPeriodTagMap().get(tag);
-                    secondList.addLast(snap);
+                try {
+                    for (Map.Entry<String, LinkedList<Long[]>> entry : GlobalPeriodSecondTagMap.entrySet()) {
+                        String tag = entry.getKey();
+                        LinkedList<Long[]> secondList = entry.getValue();
+                        Long[] snap = CloudMeter.createPeriodTagMap().get(tag);
+                        secondList.addLast(snap);
 
-                    if (secondList.size() > 2) {
-                        Long[] firstSnap = secondList.removeFirst();
-                        Long[] secondSnap = secondList.getFirst();
-                        long requestNum = (secondSnap[1] - firstSnap[1]);
-                        Meterinfo meterinfo = new Meterinfo();
-                        meterinfo.setRequestNum(requestNum);
-                        meterinfo.setNowDate(new Date(firstSnap[0]));
-                        meterinfo.setType(TimeUnit.SECONDS);
-                        meterinfo.setTag(tag);
-                        if (GlobalSecondTagMap.get(tag).size() > LASTERSECONDNUM) {
-                            GlobalSecondTagMap.get(tag).poll();
+                        if (secondList.size() > 2) {
+                            Long[] firstSnap = secondList.removeFirst();
+                            Long[] secondSnap = secondList.getFirst();
+                            long requestNum = (secondSnap[1] - firstSnap[1]);
+                            Meterinfo meterinfo = new Meterinfo();
+                            meterinfo.setRequestNum(requestNum);
+                            meterinfo.setNowDate(new Date(firstSnap[0]));
+                            meterinfo.setType(TimeUnit.SECONDS);
+                            meterinfo.setTag(tag);
+                            if (GlobalSecondTagMap.get(tag).size() > LASTERSECONDNUM) {
+                                GlobalSecondTagMap.get(tag).poll();
+                            }
+                            GlobalSecondTagMap.get(tag).add(meterinfo);
                         }
-                        GlobalSecondTagMap.get(tag).add(meterinfo);
                     }
+                } catch (Exception e) {
+                    System.out.println("meterPerMinute" + e);
                 }
             }
         }, 0, 1, TimeUnit.SECONDS);
@@ -113,27 +117,32 @@ public class CloudMeter {
         scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
-                for (Map.Entry<String, LinkedList<Long[]>> entry : GlobalPeriodMinuteTagMap.entrySet()) {
-                    String tag = entry.getKey();
-                    LinkedList<Long[]> minuteList = entry.getValue();
-                    Long[] snap = CloudMeter.createPeriodTagMap().get(tag);
-                    minuteList.addLast(snap);
+                try {
+                    for (Map.Entry<String, LinkedList<Long[]>> entry : GlobalPeriodMinuteTagMap.entrySet()) {
+                        String tag = entry.getKey();
+                        LinkedList<Long[]> minuteList = entry.getValue();
+                        Long[] snap = CloudMeter.createPeriodTagMap().get(tag);
+                        minuteList.addLast(snap);
 
-                    if (minuteList.size() > 2) {
-                        Long[] firstSnap = minuteList.removeFirst();
-                        Long[] secondSnap = minuteList.getFirst();
-                        long requestNum = (secondSnap[1] - firstSnap[1]);
-                        Meterinfo meterinfo = new Meterinfo();
-                        meterinfo.setRequestNum(requestNum);
-                        meterinfo.setNowDate(new Date(firstSnap[0]));
-                        meterinfo.setType(TimeUnit.MINUTES);
-                        meterinfo.setTag(tag);
-                        if (GlobalSecondTagMap.get(tag).size() > LASTERMINUTENUM) {
-                            GlobalSecondTagMap.get(tag).poll();
+                        if (minuteList.size() > 2) {
+                            Long[] firstSnap = minuteList.removeFirst();
+                            Long[] secondSnap = minuteList.getFirst();
+                            long requestNum = (secondSnap[1] - firstSnap[1]);
+                            Meterinfo meterinfo = new Meterinfo();
+                            meterinfo.setRequestNum(requestNum);
+                            meterinfo.setNowDate(new Date(firstSnap[0]));
+                            meterinfo.setType(TimeUnit.MINUTES);
+                            meterinfo.setTag(tag);
+                            if (GlobalSecondTagMap.get(tag).size() > LASTERMINUTENUM) {
+                                GlobalSecondTagMap.get(tag).poll();
+                            }
+                            GlobalSecondTagMap.get(tag).add(meterinfo);
                         }
-                        GlobalSecondTagMap.get(tag).add(meterinfo);
                     }
+                } catch (Exception e) {
+                    System.out.println("meterPerMinute" + e);
                 }
+
             }
         }, 0, 1, TimeUnit.MINUTES);
     }
@@ -241,15 +250,20 @@ public class CloudMeter {
         scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
-                switch (intervalModel) {
-                    case ALL:
-                        processMeterQueue(IntervalModel.SECOND);
-                        processMeterQueue(IntervalModel.MINUTE);
-                        break;
-                    default:
-                        processMeterQueue(intervalModel);
-                        break;
+                try {
+                    switch (intervalModel) {
+                        case ALL:
+                            processMeterQueue(IntervalModel.SECOND);
+                            processMeterQueue(IntervalModel.MINUTE);
+                            break;
+                        default:
+                            processMeterQueue(intervalModel);
+                            break;
+                    }
+                } catch (Exception e) {
+                    System.out.println("pushAcquireMeterinfo" + e);
                 }
+
             }
         }, 1000, 500, TimeUnit.MILLISECONDS);
     }
