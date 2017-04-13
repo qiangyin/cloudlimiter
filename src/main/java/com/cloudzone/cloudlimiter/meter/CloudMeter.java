@@ -9,6 +9,8 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
+ * 用于按秒，按分钟间隔请求方法或者代码的请求调用次数
+ *
  * @author tantexian, <my.oschina.net/tantexian>
  * @since 2017/4/5
  */
