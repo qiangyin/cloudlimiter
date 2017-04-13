@@ -1,6 +1,7 @@
 package com.cloudzone.cloudlimiter.meter;
 
 import com.cloudzone.cloudlimiter.base.AcquireStatus;
+import com.cloudzone.cloudlimiter.base.FlowUnit;
 import com.cloudzone.cloudlimiter.base.IntervalModel;
 import com.cloudzone.cloudlimiter.base.MeterListener;
 
@@ -252,6 +253,8 @@ public class CloudMeter {
 
     /**
      * 统计nums次成功请求, 因为没有传递topic参数则当做DEFAUTTOPIC类型统计
+     *
+     * @param nums 当前请求次数
      */
     public void request(long nums) {
         request(DEFAUTTOPIC, nums);
@@ -259,6 +262,9 @@ public class CloudMeter {
 
     /**
      * 统计一次成功请求（根据对应的topicTag及topicType分类统计）
+     *
+     * @param topicTag  需要分类统计的topic对应的tag
+     * @param topicType 需要分类统计的topic对应的type
      */
     public void request(String topicTag, String topicType) {
         MeterTopic meterTopic = new MeterTopic();
@@ -269,6 +275,10 @@ public class CloudMeter {
 
     /**
      * 统计nums次成功请求（根据对应的topicTag及topicType分类统计）
+     *
+     * @param topicTag  需要分类统计的topic对应的tag
+     * @param topicType 需要分类统计的topic对应的type
+     * @param nums      当前请求次数
      */
     public void request(String topicTag, String topicType, long nums) {
         MeterTopic meterTopic = new MeterTopic();
@@ -278,7 +288,24 @@ public class CloudMeter {
     }
 
     /**
+     * 统计一次成功请求（根据对应的topic分类统计）
+     *
+     * @param topicTag  需要分类统计的topic对应的tag
+     * @param topicType 需要分类统计的topic对应的type
+     * @param flowUnit  当前统计的单位（流量单位：BYTE/KB/MB/GB/TB/PB）
+     * @param size      当前统计的大小
+     */
+    public void request(String topicTag, String topicType, FlowUnit flowUnit, long size) {
+        MeterTopic meterTopic = new MeterTopic();
+        meterTopic.setTag(topicTag);
+        meterTopic.setType(topicType);
+        request(meterTopic, flowUnit.toByte(size));
+    }
+
+    /**
      * 统计一次成功请求（根据对应的topicTag分类统计，其中topicType默认为null）
+     *
+     * @param topicTag 需要分类统计的topic对应的tag
      */
     public void request(String topicTag) {
         MeterTopic meterTopic = new MeterTopic();
@@ -288,6 +315,9 @@ public class CloudMeter {
 
     /**
      * 统计nums次成功请求（根据对应的topicTag分类统计）
+     *
+     * @param topicTag 需要分类统计的topic对应的tag
+     * @param nums     当前请求次数
      */
     public void request(String topicTag, long nums) {
         MeterTopic meterTopic = new MeterTopic();
@@ -297,13 +327,42 @@ public class CloudMeter {
 
     /**
      * 统计一次成功请求（根据对应的topic分类统计）
+     *
+     * @param topicTag 需要分类统计的topic对应的tag
+     * @param flowUnit 当前统计的单位（流量单位：BYTE/KB/MB/GB/TB/PB）
+     * @param size     当前统计的大小
+     */
+    public void request(String topicTag, FlowUnit flowUnit, long size) {
+        MeterTopic meterTopic = new MeterTopic();
+        meterTopic.setTag(topicTag);
+        request(meterTopic, flowUnit.toByte(size));
+    }
+
+    /**
+     * 统计一次成功请求（根据对应的topic分类统计）
+     *
+     * @param meterTopic 需要分类统计的topic
      */
     public void request(MeterTopic meterTopic) {
         request(meterTopic, 1);
     }
 
     /**
+     * 统计一次成功请求（根据对应的topic分类统计）
+     *
+     * @param meterTopic 需要分类统计的topic
+     * @param flowUnit   当前统计的单位（流量单位：BYTE/KB/MB/GB/TB/PB）
+     * @param size       当前统计的大小
+     */
+    public void request(MeterTopic meterTopic, FlowUnit flowUnit, long size) {
+        request(meterTopic, flowUnit.toByte(size));
+    }
+
+    /**
      * 统计nums次成功请求, 通过meterTopic来分类统计
+     *
+     * @param meterTopic 需要分类统计的topic
+     * @param nums       当前请求次数
      */
     public void request(MeterTopic meterTopic, long nums) {
         checkTopic(meterTopic);
@@ -412,6 +471,9 @@ public class CloudMeter {
                     needPush = true;
                 }
 
+                System.out.println(this.acquireMeterTopic);
+                System.out.println(meterSecondOrMinuteTopicMap);
+                System.out.println(needPush);
                 if (needPush) {
                     for (Meterinfo info : meterinfoQueue) {
                         meterList.add(info);

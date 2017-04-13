@@ -13,7 +13,7 @@ import java.util.concurrent.Executors;
  * @author tantexian<my.oschina.net/tantexian>
  * @since 2017/4/12
  */
-public class MultiThreadTest {
+public class MultiThreadTpsTest {
     final static int threadNums = 10;
     final static ExecutorService executorService = Executors.newFixedThreadPool(threadNums);
     final static RealTimeLimiter limiter = CloudFactory.createRealTimeLimiter(100);
@@ -26,14 +26,19 @@ public class MultiThreadTest {
                 public void run() {
                     CloudMeter cloudMeter = CloudFactory.createCloudMeter();
                     cloudMeter.setIntervalModel(IntervalModel.ALL);
-                    cloudMeter.setAcquireMeterTopic("topicTag1", "producer");
+                    // cloudMeter.setAcquireMeterTopic("topicTag1");
                     while (true) {
-//                        limiter.acquire();
+                        //                        limiter.acquire();
                         CloudTicker.sleepMillis(100);
                         cloudMeter.registerListener(new MeterListenerIpml());
 
                         int index = (new Random()).nextInt(3);
-                        cloudMeter.request("topicTag" + index, "producer");
+                        String type = "producer";
+                        if (index == 2) {
+                            type = "consumer";
+                        }
+                        cloudMeter.request("topicTag" /*+ index*/, "producer");
+                        cloudMeter.request("topicTag" /*+ index*/, "consumer");
                     }
                 }
             });
