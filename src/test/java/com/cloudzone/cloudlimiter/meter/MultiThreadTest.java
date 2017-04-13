@@ -26,7 +26,7 @@ public class MultiThreadTest {
                 public void run() {
                     CloudMeter cloudMeter = CloudFactory.createCloudMeter();
                     cloudMeter.setIntervalModel(IntervalModel.ALL);
-                    cloudMeter.setAcquireTopic("topicTag1", "producer");
+                    cloudMeter.setAcquireMeterTopic("topicTag1", "producer");
                     while (true) {
 //                        limiter.acquire();
                         CloudTicker.sleepMillis(100);

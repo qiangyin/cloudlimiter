@@ -43,6 +43,16 @@ public class CloudMeter {
 
     private MeterListener meterListener;
 
+    /**
+     * 构造函数初始化（单例）
+     */
+    public CloudMeter() {
+        startOnce();
+    }
+
+    /**
+     * 获取当前设置统计请求次数的时间间隔
+     */
     public IntervalModel getIntervalModel() {
         return intervalModel;
     }
@@ -100,13 +110,6 @@ public class CloudMeter {
      * 推送统计信息的对应tag(默认为推送所有tag信息)
      */
     private MeterTopic acquireMeterTopic;
-
-    /**
-     * 构造函数初始化
-     */
-    public CloudMeter() {
-        startOnce();
-    }
 
     /**
      * 退出释放对应资源（如果调用应用程序不在使用统计功能，建议调用次函数释放资源）
