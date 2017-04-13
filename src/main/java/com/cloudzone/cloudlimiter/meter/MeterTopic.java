@@ -45,10 +45,9 @@ public class MeterTopic {
 
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((tag == null) ? 0 : tag.hashCode());
-        result = prime * result + ((type == null) ? 0 : type.hashCode());
+        int result = 17;
+        result = 31 * result + ((tag == null) ? 0 : tag.hashCode());
+        result = 31 * result + ((type == null) ? 0 : type.hashCode());
         return result;
     }
 
