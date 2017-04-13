@@ -25,8 +25,9 @@ public class MultiThreadTpsTest {
                 @Override
                 public void run() {
                     CloudMeter cloudMeter = CloudFactory.createCloudMeter();
-                    cloudMeter.setIntervalModel(IntervalModel.ALL);
-                    // cloudMeter.setAcquireMeterTopic("topicTag1");
+                    /*cloudMeter.setIntervalModel(IntervalModel.ALL);
+                    cloudMeter.setAcquireMeterTopic("topicTag", "producer");*/
+                    acquireAll1(cloudMeter);
                     while (true) {
                         //                        limiter.acquire();
                         CloudTicker.sleepMillis(100);
@@ -43,6 +44,33 @@ public class MultiThreadTpsTest {
                 }
             });
         }
+    }
 
+    /**
+     * 设置订阅所有的统计信息
+     */
+    private static void acquireAll(CloudMeter cloudMeter) {
+        cloudMeter.setIntervalModel(IntervalModel.ALL);
+    }
+
+    /**
+     * 设置订阅所有的统计信息
+     */
+    private static void acquireAll1(CloudMeter cloudMeter) {
+        cloudMeter.setAcquireMeterTopic("*");
+    }
+
+    /**
+     * 设置订阅所有Topic的tag==topicTag的统计信息
+     */
+    private static void acquire1(CloudMeter cloudMeter) {
+        cloudMeter.setAcquireMeterTopic("topicTag");
+    }
+
+    /**
+     * 设置订阅所有Topic的tag==topicTag，key==producer的统计信息
+     */
+    private static void acquire2(CloudMeter cloudMeter) {
+        cloudMeter.setAcquireMeterTopic("topicTag", "producer");
     }
 }

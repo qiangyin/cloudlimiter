@@ -461,26 +461,27 @@ public class CloudMeter {
             MeterTopic meterTopic = entry.getKey();
             final LinkedBlockingQueue<Meterinfo> meterinfoQueue = entry.getValue();
 
-            // 如果当前acquireTopic==null，或者Topic的tag为*，推送所有信息
+
             // 如果当前tag与用户设置获取的tag相同，或者acquireTopic的key与当前信息key相同则放置到推送列表中
+            /*System.out.println(this.acquireMeterTopic);
+            System.out.println(meterSecondOrMinuteTopicMap);*/
             boolean needPush = false;
+
+
             if (this.acquireMeterTopic == null || this.acquireMeterTopic.getTag().equals("*") || this.acquireMeterTopic.equals(meterTopic)) {
-                if (this.acquireMeterTopic == null) {
-                    needPush = true;
-                } else if (this.acquireMeterTopic.getType() == null || this.acquireMeterTopic.getType() != null && this.acquireMeterTopic.getType().equals(meterTopic.getType())) {
-                    needPush = true;
-                }
-
-                System.out.println(this.acquireMeterTopic);
-                System.out.println(meterSecondOrMinuteTopicMap);
-                System.out.println(needPush);
-                if (needPush) {
-                    for (Meterinfo info : meterinfoQueue) {
-                        meterList.add(info);
-                    }
-                }
-
+                // 如果当前设置订阅acquireTopic==null，或者Topic的tag为*，或者与meterTopic相等推送信息
+                needPush = true;
+            } else if (this.acquireMeterTopic.getTag().equals(meterTopic.getTag()) && this.acquireMeterTopic.getType() == null) {
+                // 如果当前设置订阅acquireTopic的tag与当前meterTopic的tag相等，但是acquireTopic的type==null
+                needPush = true;
             }
+
+            if (needPush) {
+                for (Meterinfo info : meterinfoQueue) {
+                    meterList.add(info);
+                }
+            }
+
         }
 
         AcquireStatus acquireStatus = this.meterListener.acquireStats(meterList);

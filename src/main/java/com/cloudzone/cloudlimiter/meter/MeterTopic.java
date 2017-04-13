@@ -5,7 +5,7 @@ package com.cloudzone.cloudlimiter.meter;
  * @since 2017/4/12
  */
 public class MeterTopic {
-    // 用于区分统计不同tag对应的请求值
+    // 用于区分统计不同tag对应的请求值（其中tag和type共同决定唯一的MeterTopic）
     private String tag;
     // 用于区分相同tag的不同的type
     private String type;
@@ -28,13 +28,15 @@ public class MeterTopic {
 
     @Override
     public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
         if (obj instanceof MeterTopic) {
-            MeterTopic meterTopic1 = (MeterTopic) obj;
-            if (this.tag == null) {
-                Exception exception = new RuntimeException("topic == null !!!");
-                exception.printStackTrace();
-            }
-            if (this.tag.equals(meterTopic1.tag)) {
+            MeterTopic other = (MeterTopic) obj;
+            if (tag == other.tag && type == other.type) {
                 return true;
             }
         }
@@ -43,11 +45,11 @@ public class MeterTopic {
 
     @Override
     public int hashCode() {
-        if (this.tag == null) {
-            Exception exception = new RuntimeException("topic == null !!!");
-            exception.printStackTrace();
-        }
-        return tag.hashCode();
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((tag == null) ? 0 : tag.hashCode());
+        result = prime * result + ((type == null) ? 0 : type.hashCode());
+        return result;
     }
 
     @Override
