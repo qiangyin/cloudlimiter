@@ -4,7 +4,7 @@ package com.cloudzone.cloudlimiter.meter;
  * @author tantexian, <my.oschina.net/tantexian>
  * @since 2017/4/12
  */
-public class Topic {
+public class MeterTopic {
     // 用于区分统计不同tag对应的请求值
     private String tag;
     // 用于区分相同tag的不同的type
@@ -28,13 +28,13 @@ public class Topic {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof Topic) {
-            Topic topic1 = (Topic) obj;
+        if (obj instanceof MeterTopic) {
+            MeterTopic meterTopic1 = (MeterTopic) obj;
             if (this.tag == null) {
                 Exception exception = new RuntimeException("topic == null !!!");
                 exception.printStackTrace();
             }
-            if (this.tag.equals(topic1.tag)) {
+            if (this.tag.equals(meterTopic1.tag)) {
                 return true;
             }
         }
@@ -52,7 +52,7 @@ public class Topic {
 
     @Override
     public String toString() {
-        return "Topic{" +
+        return "MeterTopic{" +
                 "tag='" + tag + '\'' +
                 ", type='" + type + '\'' +
                 '}';

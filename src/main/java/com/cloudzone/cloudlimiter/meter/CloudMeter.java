@@ -8,16 +8,14 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static com.google.common.collect.ComparisonChain.start;
-
 /**
  * @author tantexian, <my.oschina.net/tantexian>
  * @since 2017/4/5
  */
 public class CloudMeter {
-    private static Topic DEFAUTTOPIC;
+    private static MeterTopic DEFAUTTOPIC;
 
-    private static final ConcurrentHashMap<Topic, AtomicLong> GlobalrequestTopicMap = new ConcurrentHashMap<Topic, AtomicLong>();
+    private static final ConcurrentHashMap<MeterTopic, AtomicLong> GlobalrequestTopicMap = new ConcurrentHashMap<MeterTopic, AtomicLong>();
 
     // 队列中保存每个tag最近的60秒的TPS值
     private static final int LASTERSECONDNUM = 60;
@@ -25,12 +23,12 @@ public class CloudMeter {
     // 队列中保存每个tag最近的10分钟的TPS值
     private static final int LASTERMINUTENUM = 10;
 
-    private static final ConcurrentHashMap<Topic, LinkedBlockingQueue<Meterinfo>> GlobalSecondTopicMap = new ConcurrentHashMap<Topic, LinkedBlockingQueue<Meterinfo>>();
-    private static final ConcurrentHashMap<Topic, LinkedBlockingQueue<Meterinfo>> GlobalMinuteTopicMap = new ConcurrentHashMap<Topic, LinkedBlockingQueue<Meterinfo>>();
+    private static final ConcurrentHashMap<MeterTopic, LinkedBlockingQueue<Meterinfo>> GlobalSecondTopicMap = new ConcurrentHashMap<MeterTopic, LinkedBlockingQueue<Meterinfo>>();
+    private static final ConcurrentHashMap<MeterTopic, LinkedBlockingQueue<Meterinfo>> GlobalMinuteTopicMap = new ConcurrentHashMap<MeterTopic, LinkedBlockingQueue<Meterinfo>>();
 
 
-    final static ConcurrentHashMap<Topic, LinkedList<Long[]>> GlobalPeriodSecondTopicMap = new ConcurrentHashMap<Topic, LinkedList<Long[]>>();
-    final static ConcurrentHashMap<Topic, LinkedList<Long[]>> GlobalPeriodMinuteTopicMap = new ConcurrentHashMap<Topic, LinkedList<Long[]>>();
+    final static ConcurrentHashMap<MeterTopic, LinkedList<Long[]>> GlobalPeriodSecondTopicMap = new ConcurrentHashMap<MeterTopic, LinkedList<Long[]>>();
+    final static ConcurrentHashMap<MeterTopic, LinkedList<Long[]>> GlobalPeriodMinuteTopicMap = new ConcurrentHashMap<MeterTopic, LinkedList<Long[]>>();
 
 
     final static int SECOND = 1000;
@@ -54,29 +52,29 @@ public class CloudMeter {
     // 默认推送秒间隔统计的数据
     private IntervalModel intervalModel = IntervalModel.SECOND;
 
-    public Topic getAcquireTopic() {
-        return acquireTopic;
+    public MeterTopic getAcquireMeterTopic() {
+        return acquireMeterTopic;
     }
 
-    public void setAcquireTopic(Topic acquireTopic) {
-        this.acquireTopic = acquireTopic;
+    public void setAcquireMeterTopic(MeterTopic acquireMeterTopic) {
+        this.acquireMeterTopic = acquireMeterTopic;
     }
 
     public void setAcquireTopic(String acquireTopicTag) {
-        final Topic topic = new Topic();
-        topic.setTag(acquireTopicTag);
-        this.acquireTopic = topic;
+        final MeterTopic meterTopic = new MeterTopic();
+        meterTopic.setTag(acquireTopicTag);
+        this.acquireMeterTopic = meterTopic;
     }
 
     public void setAcquireTopic(String acquireTopicTag, String acquireTopicType) {
-        final Topic topic = new Topic();
-        topic.setTag(acquireTopicTag);
-        topic.setType(acquireTopicType);
-        this.acquireTopic = topic;
+        final MeterTopic meterTopic = new MeterTopic();
+        meterTopic.setTag(acquireTopicTag);
+        meterTopic.setType(acquireTopicType);
+        this.acquireMeterTopic = meterTopic;
     }
 
     // 推送统计信息的对应tag(默认为推送所有tag信息)
-    private Topic acquireTopic;
+    private MeterTopic acquireMeterTopic;
 
     public CloudMeter() {
         startOnce();
@@ -94,7 +92,7 @@ public class CloudMeter {
     private static void startOnce() {
         if (isStart == false) {
             isStart = true;
-            DEFAUTTOPIC = new Topic();
+            DEFAUTTOPIC = new MeterTopic();
             DEFAUTTOPIC.setTag("DefautTopicTag");
             meterPerSecond();
             meterPerMinute();
@@ -106,10 +104,10 @@ public class CloudMeter {
             @Override
             public void run() {
                 try {
-                    for (Map.Entry<Topic, LinkedList<Long[]>> entry : GlobalPeriodSecondTopicMap.entrySet()) {
-                        Topic topic = entry.getKey();
+                    for (Map.Entry<MeterTopic, LinkedList<Long[]>> entry : GlobalPeriodSecondTopicMap.entrySet()) {
+                        MeterTopic meterTopic = entry.getKey();
                         LinkedList<Long[]> secondList = entry.getValue();
-                        Long[] snap = CloudMeter.createPeriodTopicMap().get(topic);
+                        Long[] snap = CloudMeter.createPeriodTopicMap().get(meterTopic);
                         secondList.addLast(snap);
 
                         if (secondList.size() > 2) {
@@ -120,11 +118,11 @@ public class CloudMeter {
                             meterinfo.setRequestNum(requestNum);
                             meterinfo.setNowDate(new Date(firstSnap[0]));
                             meterinfo.setTimeUnitType(TimeUnit.SECONDS);
-                            meterinfo.setTopic(topic);
-                            if (GlobalSecondTopicMap.get(topic).size() > LASTERSECONDNUM) {
-                                GlobalSecondTopicMap.get(topic).poll();
+                            meterinfo.setMeterTopic(meterTopic);
+                            if (GlobalSecondTopicMap.get(meterTopic).size() > LASTERSECONDNUM) {
+                                GlobalSecondTopicMap.get(meterTopic).poll();
                             }
-                            GlobalSecondTopicMap.get(topic).add(meterinfo);
+                            GlobalSecondTopicMap.get(meterTopic).add(meterinfo);
                         }
                     }
                 } catch (Exception e) {
@@ -139,10 +137,10 @@ public class CloudMeter {
             @Override
             public void run() {
                 try {
-                    for (Map.Entry<Topic, LinkedList<Long[]>> entry : GlobalPeriodMinuteTopicMap.entrySet()) {
-                        Topic topic = entry.getKey();
+                    for (Map.Entry<MeterTopic, LinkedList<Long[]>> entry : GlobalPeriodMinuteTopicMap.entrySet()) {
+                        MeterTopic meterTopic = entry.getKey();
                         LinkedList<Long[]> minuteList = entry.getValue();
-                        Long[] snap = CloudMeter.createPeriodTopicMap().get(topic);
+                        Long[] snap = CloudMeter.createPeriodTopicMap().get(meterTopic);
                         minuteList.addLast(snap);
 
                         if (minuteList.size() > 2) {
@@ -153,11 +151,11 @@ public class CloudMeter {
                             meterinfo.setRequestNum(requestNum);
                             meterinfo.setNowDate(new Date(firstSnap[0]));
                             meterinfo.setTimeUnitType(TimeUnit.MINUTES);
-                            meterinfo.setTopic(topic);
-                            if (GlobalMinuteTopicMap.get(topic).size() > LASTERMINUTENUM) {
-                                GlobalMinuteTopicMap.get(topic).poll();
+                            meterinfo.setMeterTopic(meterTopic);
+                            if (GlobalMinuteTopicMap.get(meterTopic).size() > LASTERMINUTENUM) {
+                                GlobalMinuteTopicMap.get(meterTopic).poll();
                             }
-                            GlobalMinuteTopicMap.get(topic).add(meterinfo);
+                            GlobalMinuteTopicMap.get(meterTopic).add(meterinfo);
                         }
                     }
                 } catch (Exception e) {
@@ -168,16 +166,16 @@ public class CloudMeter {
         }, 0, 1, TimeUnit.MINUTES);
     }
 
-    private static Map<Topic, Long[]> createPeriodTopicMap() {
-        ConcurrentHashMap<Topic, Long[]> PeriodTopicMap = new ConcurrentHashMap<Topic, Long[]>();
-        for (Map.Entry<Topic, AtomicLong> entry : GlobalrequestTopicMap.entrySet()) {
-            Topic topic = entry.getKey();
+    private static Map<MeterTopic, Long[]> createPeriodTopicMap() {
+        ConcurrentHashMap<MeterTopic, Long[]> PeriodTopicMap = new ConcurrentHashMap<MeterTopic, Long[]>();
+        for (Map.Entry<MeterTopic, AtomicLong> entry : GlobalrequestTopicMap.entrySet()) {
+            MeterTopic meterTopic = entry.getKey();
             AtomicLong num = entry.getValue();
             Long[] snap = new Long[]{
                     System.currentTimeMillis(),// 产生记录时间
                     num.get(),// 获取当前请求数量
             };
-            PeriodTopicMap.put(topic, snap);
+            PeriodTopicMap.put(meterTopic, snap);
         }
         return PeriodTopicMap;
     }
@@ -189,17 +187,17 @@ public class CloudMeter {
 
     // 统计一次成功请求, 如果没有tag参数则当做DEFAUTTAG相同类型统计
     public void request(String topicTag, String topicType) {
-        Topic topic = new Topic();
-        topic.setTag(topicTag);
-        topic.setType(topicType);
-        request(topic);
+        MeterTopic meterTopic = new MeterTopic();
+        meterTopic.setTag(topicTag);
+        meterTopic.setType(topicType);
+        request(meterTopic);
     }
 
     // 统计一次成功请求, 如果没有tag参数则当做DEFAUTTAG相同类型统计
     public void request(String topicTag) {
-        Topic topic = new Topic();
-        topic.setTag(topicTag);
-        request(topic);
+        MeterTopic meterTopic = new MeterTopic();
+        meterTopic.setTag(topicTag);
+        request(meterTopic);
     }
 
     /**
@@ -209,36 +207,36 @@ public class CloudMeter {
      * @params tag 用于区别统计、注意不能为"*"
      * @since 2017/4/7
      */
-    public void request(Topic topic) {
-        request(topic, 1);
+    public void request(MeterTopic meterTopic) {
+        request(meterTopic, 1);
     }
 
 
     /**
      * 统计成功请求, 通过tag来区分统计
      *
-     * @param topic 用于区别统计、注意不能为"*"
+     * @param meterTopic 用于区别统计、注意不能为"*"
      * @param nums  表示一次需要统计的次数
      * @author tantexian, <my.oschina.net/tantexian>
      * @since 2017/4/7
      */
-    public void request(Topic topic, long nums) {
-        initMapWithTopic(topic);
-        AtomicLong requestTopicNum = GlobalrequestTopicMap.get(topic);
+    public void request(MeterTopic meterTopic, long nums) {
+        initMapWithTopic(meterTopic);
+        AtomicLong requestTopicNum = GlobalrequestTopicMap.get(meterTopic);
         requestTopicNum.addAndGet(nums);
-        // System.out.println("topic ==" + topic + " requestTopicNum == " + requestTopicNum);
+        // System.out.println("meterTopic ==" + meterTopic + " requestTopicNum == " + requestTopicNum);
     }
 
-    private static void checkTopic(Topic topic) {
-        if (topic == null) {
-            Exception exception = new RuntimeException("topic == null !!!");
+    private static void checkTopic(MeterTopic meterTopic) {
+        if (meterTopic == null) {
+            Exception exception = new RuntimeException("meterTopic == null !!!");
             exception.printStackTrace();
         }
-        if (topic.getTag() == null) {
+        if (meterTopic.getTag() == null) {
             Exception exception = new RuntimeException("You can not allow tag == null !!!");
             exception.printStackTrace();
         }
-        if (topic.getTag().equals("*")) {
+        if (meterTopic.getTag().equals("*")) {
             Exception exception = new RuntimeException("You can not allow use \"*\" as tag !!!");
             exception.printStackTrace();
         }
@@ -246,14 +244,14 @@ public class CloudMeter {
     }
 
     // 如果当前tag不存在则添加
-    private static void initMapWithTopic(Topic topic) {
+    private static void initMapWithTopic(MeterTopic meterTopic) {
         // putIfAbsent如果不存在当前put的key值，则put成功，返回null值
         // 如果当前map已经存在该key，那么返回已存在key对应的value值
-        GlobalrequestTopicMap.putIfAbsent(topic, new AtomicLong(0));
-        GlobalPeriodSecondTopicMap.putIfAbsent(topic, new LinkedList<Long[]>());
-        GlobalPeriodMinuteTopicMap.putIfAbsent(topic, new LinkedList<Long[]>());
-        GlobalSecondTopicMap.putIfAbsent(topic, new LinkedBlockingQueue<Meterinfo>());
-        GlobalMinuteTopicMap.putIfAbsent(topic, new LinkedBlockingQueue<Meterinfo>());
+        GlobalrequestTopicMap.putIfAbsent(meterTopic, new AtomicLong(0));
+        GlobalPeriodSecondTopicMap.putIfAbsent(meterTopic, new LinkedList<Long[]>());
+        GlobalPeriodMinuteTopicMap.putIfAbsent(meterTopic, new LinkedList<Long[]>());
+        GlobalSecondTopicMap.putIfAbsent(meterTopic, new LinkedBlockingQueue<Meterinfo>());
+        GlobalMinuteTopicMap.putIfAbsent(meterTopic, new LinkedBlockingQueue<Meterinfo>());
     }
 
     /**
@@ -306,7 +304,7 @@ public class CloudMeter {
     // 根据model类型，推送对应数据给用户
     private void processMeterQueue(IntervalModel model) {
         List<Meterinfo> meterList = new ArrayList<Meterinfo>();
-        Map<Topic, LinkedBlockingQueue<Meterinfo>> meterSecondOrMinuteTopicMap = new ConcurrentHashMap<Topic, LinkedBlockingQueue<Meterinfo>>();
+        Map<MeterTopic, LinkedBlockingQueue<Meterinfo>> meterSecondOrMinuteTopicMap = new ConcurrentHashMap<MeterTopic, LinkedBlockingQueue<Meterinfo>>();
         switch (model) {
             case SECOND:
                 meterSecondOrMinuteTopicMap = GlobalSecondTopicMap;
@@ -317,17 +315,17 @@ public class CloudMeter {
         }
 
         // System.out.println("meterSecondOrMinuteTopicMap == " + meterSecondOrMinuteTopicMap);
-        for (Map.Entry<Topic, LinkedBlockingQueue<Meterinfo>> entry : meterSecondOrMinuteTopicMap.entrySet()) {
-            Topic topic = entry.getKey();
+        for (Map.Entry<MeterTopic, LinkedBlockingQueue<Meterinfo>> entry : meterSecondOrMinuteTopicMap.entrySet()) {
+            MeterTopic meterTopic = entry.getKey();
             final LinkedBlockingQueue<Meterinfo> meterinfoQueue = entry.getValue();
 
             // 如果当前acquireTopic==null，或者Topic的tag为*，推送所有信息
             // 如果当前tag与用户设置获取的tag相同，或者acquireTopic的key与当前信息key相同则放置到推送列表中
             boolean needPush = false;
-            if (this.acquireTopic == null || this.acquireTopic.getTag().equals("*") || this.acquireTopic.equals(topic)) {
-                if (this.acquireTopic == null) {
+            if (this.acquireMeterTopic == null || this.acquireMeterTopic.getTag().equals("*") || this.acquireMeterTopic.equals(meterTopic)) {
+                if (this.acquireMeterTopic == null) {
                     needPush = true;
-                } else if (this.acquireTopic.getType() == null || this.acquireTopic.getType() != null && this.acquireTopic.getType().equals(topic.getType())) {
+                } else if (this.acquireMeterTopic.getType() == null || this.acquireMeterTopic.getType() != null && this.acquireMeterTopic.getType().equals(meterTopic.getType())) {
                     needPush = true;
                 }
 
@@ -344,7 +342,7 @@ public class CloudMeter {
         switch (acquireStatus) {
             case ACQUIRE_SUCCESS:
                 for (Meterinfo info : meterList) {
-                    meterSecondOrMinuteTopicMap.get(info.getTopic()).remove(info);
+                    meterSecondOrMinuteTopicMap.get(info.getMeterTopic()).remove(info);
                 }
                 break;
             case REACQUIRE_LATER:

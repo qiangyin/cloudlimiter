@@ -19,15 +19,15 @@ public class CloudMeterTest {
         cloudMeter.registerListener(new MeterListenerIpml());
 
         cloudMeter.setIntervalModel(IntervalModel.ALL);
-      /*  Topic topic = new Topic();
-        topic.setTag("*");*/
-        //cloudMeter.setAcquireTopic("mytag66");
-        Topic topic = new Topic();
-        topic.setTag("mytag777");
-        topic.setType("sendMsg");
-        cloudMeter.setAcquireTopic(topic);
+      /*  MeterTopic meterTopic = new MeterTopic();
+        meterTopic.setTag("*");*/
+        //cloudMeter.setAcquireMeterTopic("mytag66");
+        MeterTopic meterTopic = new MeterTopic();
+        meterTopic.setTag("mytag777");
+        meterTopic.setType("sendMsg");
+        cloudMeter.setAcquireMeterTopic(meterTopic);
 
-        // cloudMeter.setAcquireTopic("*");
+        // cloudMeter.setAcquireMeterTopic("*");
 
         for (int i = 0; i < 1000000; i++) {
             if (i == 100) {
@@ -42,10 +42,10 @@ public class CloudMeterTest {
             }
             realTimeLimiter.acquire();
 
-            Topic topic1 = new Topic();
-            topic1.setTag("mytag777");
-            topic1.setType("sendMsg");
-            cloudMeter.request(topic1);
+            MeterTopic meterTopic1 = new MeterTopic();
+            meterTopic1.setTag("mytag777");
+            meterTopic1.setType("sendMsg");
+            cloudMeter.request(meterTopic1);
 
             cloudMeter.request();
             cloudMeter.request("mytag4");

@@ -14,7 +14,7 @@ public class Meterinfo {
     private long requestNum;
 
     // 用于区分不同统计主题
-    private Topic topic;
+    private MeterTopic meterTopic;
 
     // Topic的tag字段
     private String tag;
@@ -23,19 +23,19 @@ public class Meterinfo {
     private String type;
 
     public String getTag() {
-        return this.topic.getTag();
+        return this.meterTopic.getTag();
     }
 
     public String getType() {
-        return this.topic.getType();
+        return this.meterTopic.getType();
     }
 
-    public Topic getTopic() {
-        return topic;
+    public MeterTopic getMeterTopic() {
+        return meterTopic;
     }
 
-    public void setTopic(Topic topic) {
-        this.topic = topic;
+    public void setMeterTopic(MeterTopic meterTopic) {
+        this.meterTopic = meterTopic;
     }
 
     public Date getNowDate() {
@@ -68,7 +68,7 @@ public class Meterinfo {
                 "nowDate=" + nowDate +
                 ", timeUnitType=" + timeUnitType +
                 ", requestNum=" + requestNum +
-                ", topic=" + topic +
+                ", meterTopic=" + meterTopic +
                 ", tag='" + this.getTag() + '\'' +
                 ", type='" + this.getType() + '\'' +
                 '}';
