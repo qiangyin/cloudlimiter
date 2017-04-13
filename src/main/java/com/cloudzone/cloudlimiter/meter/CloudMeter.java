@@ -247,7 +247,7 @@ public class CloudMeter {
      * 统计一次成功请求, 因为没有传递topic参数则当做DEFAUTTOPIC类型统计
      */
     public void request() {
-        request(DEFAUTTOPIC);
+        request(DEFAUTTOPIC, 1);
     }
 
     /**
@@ -264,7 +264,17 @@ public class CloudMeter {
         MeterTopic meterTopic = new MeterTopic();
         meterTopic.setTag(topicTag);
         meterTopic.setType(topicType);
-        request(meterTopic);
+        request(meterTopic, 1);
+    }
+
+    /**
+     * 统计nums次成功请求（根据对应的topicTag及topicType分类统计）
+     */
+    public void request(String topicTag, String topicType, long nums) {
+        MeterTopic meterTopic = new MeterTopic();
+        meterTopic.setTag(topicTag);
+        meterTopic.setType(topicType);
+        request(meterTopic, nums);
     }
 
     /**
@@ -273,9 +283,17 @@ public class CloudMeter {
     public void request(String topicTag) {
         MeterTopic meterTopic = new MeterTopic();
         meterTopic.setTag(topicTag);
-        request(meterTopic);
+        request(meterTopic, 1);
     }
 
+    /**
+     * 统计nums次成功请求（根据对应的topicTag分类统计）
+     */
+    public void request(String topicTag, long nums) {
+        MeterTopic meterTopic = new MeterTopic();
+        meterTopic.setTag(topicTag);
+        request(meterTopic, nums);
+    }
 
     /**
      * 统计一次成功请求（根据对应的topic分类统计）
@@ -284,12 +302,8 @@ public class CloudMeter {
         request(meterTopic, 1);
     }
 
-
     /**
-     * 统计成功请求, 通过meterTopic来分类统计
-     *
-     * @param meterTopic 用于区别统计
-     * @param nums       表示当前需要统计的次数
+     * 统计nums次成功请求, 通过meterTopic来分类统计
      */
     public void request(MeterTopic meterTopic, long nums) {
         checkTopic(meterTopic);
