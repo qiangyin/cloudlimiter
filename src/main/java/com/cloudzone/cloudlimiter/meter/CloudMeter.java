@@ -46,8 +46,22 @@ public class CloudMeter {
     /**
      * 构造函数初始化（单例）
      */
-    public CloudMeter() {
+    private CloudMeter() {
         startOnce();
+    }
+
+    /**
+     * 获取CloudMeter单例对象
+     */
+    public static CloudMeter getSingleInstance() {
+        return SingletonHolder.cloudMeter;
+    }
+
+    /**
+     * 使用静态内部类获取CloudMeter单例对象（延时加载，需要时候再创建）
+     */
+    private static class SingletonHolder {
+        private static CloudMeter cloudMeter = new CloudMeter();
     }
 
     /**
