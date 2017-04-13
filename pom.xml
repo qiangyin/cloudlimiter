@@ -24,7 +24,6 @@
         <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
         <guava.google.version>17.0</guava.google.version>
         <junit.version>4.5</junit.version>
-        <junit.version>4.5</junit.version>
     </properties>
 
     <dependencies>
@@ -40,6 +39,7 @@
             <groupId>com.codahale.metrics</groupId>
             <artifactId>metrics-core</artifactId>
             <version>3.0.1</version>
+            <scope>test</scope>
         </dependency>
 
         <!-- 单元测试 -->
