@@ -76,4 +76,15 @@ public class GoogleRateTest {
     private static void printTime(int num) {
         System.out.println(num + ":" + new Date());
     }
+
+    @Test
+    public void test2() {
+        RateLimiter rateLimiter = RateLimiter.create(0.000001);
+
+
+        while (true) {
+            rateLimiter.acquire();
+            printTime(1);
+        }
+    }
 }
