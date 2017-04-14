@@ -36,7 +36,7 @@ public class MeterTopic {
         }
         if (obj instanceof MeterTopic) {
             MeterTopic other = (MeterTopic) obj;
-            if (tag == other.tag && type == other.type) {
+            if (tag.equals(other.tag) && type.equals(other.type)) {
                 return true;
             }
         }
