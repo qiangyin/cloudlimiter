@@ -27,6 +27,7 @@ public class LimiterDelayExecutorTest {
         while (true) {
             i++;
             if (i % 10 == 0) {
+                System.out.println("ONCE_PER_MINUTE");
                 realTimeLimiter.setRate(LimiterDelayConstants.ONCE_PER_MINUTE);
             } else {
                 realTimeLimiter.setRate(LimiterDelayConstants.ONCE_PER_SECOND);
