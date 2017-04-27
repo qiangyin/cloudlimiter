@@ -34,14 +34,6 @@
             <scope>test</scope>
         </dependency>
 
-
-        <dependency>
-            <groupId>com.codahale.metrics</groupId>
-            <artifactId>metrics-core</artifactId>
-            <version>3.0.1</version>
-            <scope>test</scope>
-        </dependency>
-
         <!-- 单元测试 -->
         <dependency>
             <groupId>junit</groupId>

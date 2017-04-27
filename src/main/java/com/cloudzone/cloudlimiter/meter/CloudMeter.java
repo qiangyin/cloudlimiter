@@ -131,6 +131,10 @@ public class CloudMeter {
      */
     public void shutdown() {
         this.scheduledExecutorService.shutdown();
+        // 关闭时候，强制制造1次数据，以达到推送完毕之前有数据
+        meterPerSecondHandle();
+        meterPerMinuteHandle();
+        pushHandle();
     }
 
     /**
@@ -146,85 +150,92 @@ public class CloudMeter {
      */
     private static void startOnce() {
         if (isStart == false) {
+            meterPerSecondSchedule();
+            meterPerMinuteSchedule();
             isStart = true;
             DEFAUTTOPIC = new MeterTopic();
             DEFAUTTOPIC.setTag("DefautTopicTag");
-            meterPerSecond();
-            meterPerMinute();
         }
     }
 
     /**
      * 按照秒间隔统计请求数据
      */
-    private static void meterPerSecond() {
+    private static void meterPerSecondSchedule() {
         scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
-                try {
-                    for (Map.Entry<MeterTopic, LinkedList<Long[]>> entry : GlobalPeriodSecondTopicMap.entrySet()) {
-                        MeterTopic meterTopic = entry.getKey();
-                        LinkedList<Long[]> secondList = entry.getValue();
-                        Long[] snap = CloudMeter.createPeriodTopicMap().get(meterTopic);
-                        secondList.addLast(snap);
-
-                        if (secondList.size() > 2) {
-                            Long[] firstSnap = secondList.removeFirst();
-                            Long[] secondSnap = secondList.getFirst();
-                            long requestNum = (secondSnap[1] - firstSnap[1]);
-                            Meterinfo meterinfo = new Meterinfo();
-                            meterinfo.setRequestNum(requestNum);
-                            meterinfo.setNowDate(new Date(firstSnap[0]));
-                            meterinfo.setTimeUnitType(TimeUnit.SECONDS);
-                            meterinfo.setMeterTopic(meterTopic);
-                            if (GlobalSecondTopicMap.get(meterTopic).size() > LASTERSECONDNUM) {
-                                GlobalSecondTopicMap.get(meterTopic).poll();
-                            }
-                            GlobalSecondTopicMap.get(meterTopic).add(meterinfo);
-                        }
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                meterPerSecondHandle();
             }
         }, 0, 1, TimeUnit.SECONDS);
+    }
+
+    private static void meterPerSecondHandle() {
+        try {
+            for (Map.Entry<MeterTopic, LinkedList<Long[]>> entry : GlobalPeriodSecondTopicMap.entrySet()) {
+                MeterTopic meterTopic = entry.getKey();
+                LinkedList<Long[]> secondList = entry.getValue();
+                Long[] snap = CloudMeter.createPeriodTopicMap().get(meterTopic);
+                secondList.addLast(snap);
+
+                if (secondList.size() > 1) {
+                    Long[] firstSnap = secondList.removeFirst();
+                    Long[] secondSnap = secondList.getFirst();
+                    long requestNum = (secondSnap[1] - firstSnap[1]);
+                    Meterinfo meterinfo = new Meterinfo();
+                    meterinfo.setRequestNum(requestNum);
+                    meterinfo.setNowDate(new Date(firstSnap[0]));
+                    meterinfo.setTimeUnitType(TimeUnit.SECONDS);
+                    meterinfo.setMeterTopic(meterTopic);
+                    if (GlobalSecondTopicMap.get(meterTopic).size() > LASTERSECONDNUM) {
+                        GlobalSecondTopicMap.get(meterTopic).poll();
+                    }
+                    GlobalSecondTopicMap.get(meterTopic).add(meterinfo);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     /**
      * 按照分钟间隔统计请求数据
      */
-    private static void meterPerMinute() {
+    private static void meterPerMinuteSchedule() {
         scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
-                try {
-                    for (Map.Entry<MeterTopic, LinkedList<Long[]>> entry : GlobalPeriodMinuteTopicMap.entrySet()) {
-                        MeterTopic meterTopic = entry.getKey();
-                        LinkedList<Long[]> minuteList = entry.getValue();
-                        Long[] snap = CloudMeter.createPeriodTopicMap().get(meterTopic);
-                        minuteList.addLast(snap);
-
-                        if (minuteList.size() > 2) {
-                            Long[] firstSnap = minuteList.removeFirst();
-                            Long[] secondSnap = minuteList.getFirst();
-                            long requestNum = (secondSnap[1] - firstSnap[1]);
-                            Meterinfo meterinfo = new Meterinfo();
-                            meterinfo.setRequestNum(requestNum);
-                            meterinfo.setNowDate(new Date(firstSnap[0]));
-                            meterinfo.setTimeUnitType(TimeUnit.MINUTES);
-                            meterinfo.setMeterTopic(meterTopic);
-                            if (GlobalMinuteTopicMap.get(meterTopic).size() > LASTERMINUTENUM) {
-                                GlobalMinuteTopicMap.get(meterTopic).poll();
-                            }
-                            GlobalMinuteTopicMap.get(meterTopic).add(meterinfo);
-                        }
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-
+                meterPerMinuteHandle();
             }
         }, 0, 1, TimeUnit.MINUTES);
+    }
+
+    private static void meterPerMinuteHandle() {
+        try {
+            for (Map.Entry<MeterTopic, LinkedList<Long[]>> entry : GlobalPeriodMinuteTopicMap.entrySet()) {
+                MeterTopic meterTopic = entry.getKey();
+                LinkedList<Long[]> minuteList = entry.getValue();
+                Long[] snap = CloudMeter.createPeriodTopicMap().get(meterTopic);
+                minuteList.addLast(snap);
+
+                if (minuteList.size() > 1) {
+                    Long[] firstSnap = minuteList.removeFirst();
+                    Long[] secondSnap = minuteList.getFirst();
+                    long requestNum = (secondSnap[1] - firstSnap[1]);
+                    Meterinfo meterinfo = new Meterinfo();
+                    meterinfo.setRequestNum(requestNum);
+                    meterinfo.setNowDate(new Date(firstSnap[0]));
+                    meterinfo.setTimeUnitType(TimeUnit.MINUTES);
+                    meterinfo.setMeterTopic(meterTopic);
+                    if (GlobalMinuteTopicMap.get(meterTopic).size() > LASTERMINUTENUM) {
+                        GlobalMinuteTopicMap.get(meterTopic).poll();
+                    }
+                    GlobalMinuteTopicMap.get(meterTopic).add(meterinfo);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -399,7 +410,7 @@ public class CloudMeter {
     private static void initMapWithTopic(MeterTopic meterTopic) {
         // putIfAbsent如果不存在当前put的key值，则put成功，返回null值
         // 如果当前map已经存在该key，那么返回已存在key对应的value值
-        GlobalrequestTopicMap.putIfAbsent(meterTopic, new AtomicLong(0));
+        GlobalrequestTopicMap.putIfAbsent(meterTopic, new AtomicLong(-1));
         GlobalPeriodSecondTopicMap.putIfAbsent(meterTopic, new LinkedList<Long[]>());
         GlobalPeriodMinuteTopicMap.putIfAbsent(meterTopic, new LinkedList<Long[]>());
         GlobalSecondTopicMap.putIfAbsent(meterTopic, new LinkedBlockingQueue<Meterinfo>());
@@ -413,33 +424,36 @@ public class CloudMeter {
     private void pushAcquireMeterinfo() {
         if (isPush == false) {
             isPush = true;
-            push();
+            pushSchedule();
         }
     }
 
     /**
      * 按照500毫秒间隔推送统计信息
      */
-    private void push() {
+    private void pushSchedule() {
         scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
-                try {
-                    switch (intervalModel) {
-                        case ALL:
-                            processMeterQueue(IntervalModel.SECOND);
-                            processMeterQueue(IntervalModel.MINUTE);
-                            break;
-                        default:
-                            processMeterQueue(intervalModel);
-                            break;
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-
+                pushHandle();
             }
         }, 1000, 500, TimeUnit.MILLISECONDS);
+    }
+
+    private void pushHandle() {
+        try {
+            switch (intervalModel) {
+                case ALL:
+                    processMeterQueue(IntervalModel.SECOND);
+                    processMeterQueue(IntervalModel.MINUTE);
+                    break;
+                default:
+                    processMeterQueue(intervalModel);
+                    break;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     /**
