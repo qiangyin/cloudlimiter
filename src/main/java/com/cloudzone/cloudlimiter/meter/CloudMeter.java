@@ -26,8 +26,7 @@ public class CloudMeter {
     // 队列中保存每个tag最近的10分钟的TPS值
     private static final int LASTERMINUTENUM = 10;
 
-    private static volatile boolean isStart = false;
-    private static volatile boolean isPush = false;
+    private volatile boolean isPush = false;
 
     private ConcurrentHashMap<MeterTopic, AtomicLong> globalrequestTopicMap = new ConcurrentHashMap<MeterTopic, AtomicLong>();
 
@@ -136,14 +135,12 @@ public class CloudMeter {
      * 保证定时统计任务只会执行一次
      */
     private void startOnce() {
-        if (isStart == false) {
-            meterPerSecondSchedule(this);
-            meterPerMinuteSchedule(this);
-            isStart = true;
-            DEFAUTTOPIC = new MeterTopic();
-            DEFAUTTOPIC.setTag("DefautTopicTag");
-        }
+        meterPerSecondSchedule(this);
+        meterPerMinuteSchedule(this);
+        DEFAUTTOPIC = new MeterTopic();
+        DEFAUTTOPIC.setTag("DefautTopicTag");
     }
+
 
     /**
      * 按照秒间隔统计请求数据
