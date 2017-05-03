@@ -1,6 +1,9 @@
 package com.cloudzone.cloudlimiter.meter;
 
 /**
+ * 用于区别统计不同的主题数据
+ * 如果tag和type不够用，请自行继承此方法（务必修改资料equals和hashcode方法）
+ *
  * @author tantexian, <my.oschina.net/tantexian>
  * @since 2017/4/12
  */

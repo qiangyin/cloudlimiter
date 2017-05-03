@@ -26,7 +26,7 @@ public class TPSWithMeter {
         final AtomicLong meterResultMin = new AtomicLong(0);
         RealTimeLimiter realTimeLimiter = CloudFactory.createRealTimeLimiter(10);
         CloudMeter cloudMeter = CloudFactory.createCloudMeter();
-        cloudMeter.setIntervalModel(IntervalModel.MINUTE);
+        cloudMeter.setIntervalModel(IntervalModel.ALL);
         cloudMeter.registerListener(new MeterListener() {
             @Override
             public AcquireStatus acquireStats(List<Meterinfo> meterinfos) {

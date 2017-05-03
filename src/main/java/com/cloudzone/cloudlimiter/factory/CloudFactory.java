@@ -66,9 +66,10 @@ public class CloudFactory {
     }
 
     /**
-     * 统计方法调用次数（时间间隔支持秒或者分钟, 单例模式）
+     * 统计方法调用次数（时间间隔支持秒或者分钟, 多例模式）
+     * 为了避免统计的数据结构占用过多资源，业务调用方建议在能复用的情况下，封装单例给自己使用
      */
     public static CloudMeter createCloudMeter() {
-        return CloudMeter.getSingleInstance();
+        return new CloudMeter();
     }
 }
