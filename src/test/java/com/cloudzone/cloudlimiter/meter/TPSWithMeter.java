@@ -37,6 +37,18 @@ public class TPSWithMeter {
             }
         });
 
+        CloudMeter cloudMeter2 = CloudFactory.createCloudMeter();
+        cloudMeter2.setIntervalModel(IntervalModel.ALL);
+        cloudMeter2.registerListener(new MeterListener() {
+            @Override
+            public AcquireStatus acquireStats(List<Meterinfo> meterinfos) {
+                for (Meterinfo meterInfo : meterinfos) {
+                    System.out.println("2:" + meterInfo);
+                }
+                return ACQUIRE_SUCCESS;
+            }
+        });
+
         for (int i = 0; i < 10000000; i++) {
             Calendar calendar = Calendar.getInstance();
             calendar.setTime(new Date());
@@ -63,6 +75,7 @@ public class TPSWithMeter {
             }
             realTimeLimiter.acquire();
             cloudMeter.request();
+            cloudMeter2.request();
             input.addAndGet(1);
         }
 

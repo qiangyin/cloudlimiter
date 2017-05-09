@@ -27,6 +27,8 @@ public class CloudMeter {
     private static final int LASTERMINUTENUM = 10;
 
     private volatile boolean isPush = false;
+    private static volatile boolean isSecondTimerStart = false;
+    private static volatile boolean isMinitusTimerStart = false;
 
     private ConcurrentHashMap<MeterTopic, AtomicLong> globalrequestTopicMap = new ConcurrentHashMap<MeterTopic, AtomicLong>();
 
@@ -150,8 +152,12 @@ public class CloudMeter {
             @Override
             public void run() {
                 cloudMeter.meterPerSecondHandle();
+                // 此处代表second TPS统计定时器已经启动了
+                if (isSecondTimerStart == false) {
+                    isSecondTimerStart = true;
+                }
             }
-        }, 0, 1, TimeUnit.SECONDS);
+        }, 1, 1, TimeUnit.SECONDS);
     }
 
     private void meterPerSecondHandle() {
@@ -162,7 +168,7 @@ public class CloudMeter {
                 Long[] snap = this.createPeriodTopicMap().get(meterTopic);
                 secondList.addLast(snap);
 
-                if (secondList.size() > 1) {
+                if (secondList.size() >= 2) {
                     Long[] firstSnap = secondList.removeFirst();
                     Long[] secondSnap = secondList.getFirst();
                     long requestNum = (secondSnap[1] - firstSnap[1]);
@@ -190,8 +196,12 @@ public class CloudMeter {
             @Override
             public void run() {
                 cloudMeter.meterPerMinuteHandle();
+                // 此处代表Minute TPS统计定时器已经启动了
+                if (isMinitusTimerStart == false) {
+                    isMinitusTimerStart = true;
+                }
             }
-        }, 0, 1, TimeUnit.MINUTES);
+        }, 1, 1, TimeUnit.MINUTES);
     }
 
     private void meterPerMinuteHandle() {
@@ -202,7 +212,7 @@ public class CloudMeter {
                 Long[] snap = this.createPeriodTopicMap().get(meterTopic);
                 minuteList.addLast(snap);
 
-                if (minuteList.size() > 1) {
+                if (minuteList.size() >= 2) {
                     Long[] firstSnap = minuteList.removeFirst();
                     Long[] secondSnap = minuteList.getFirst();
                     long requestNum = (secondSnap[1] - firstSnap[1]);
@@ -395,10 +405,22 @@ public class CloudMeter {
         // putIfAbsent如果不存在当前put的key值，则put成功，返回null值
         // 如果当前map已经存在该key，那么返回已存在key对应的value值
         this.globalrequestTopicMap.putIfAbsent(meterTopic, new AtomicLong(-1));
-        globalPeriodSecondTopicMap.putIfAbsent(meterTopic, new LinkedList<Long[]>());
-        globalPeriodMinuteTopicMap.putIfAbsent(meterTopic, new LinkedList<Long[]>());
-        globalSecondTopicMap.putIfAbsent(meterTopic, new LinkedBlockingQueue<Meterinfo>());
-        globalMinuteTopicMap.putIfAbsent(meterTopic, new LinkedBlockingQueue<Meterinfo>());
+        List resultSec = this.globalPeriodSecondTopicMap.putIfAbsent(meterTopic, new LinkedList<Long[]>());
+        if (resultSec == null) { // 表示第一次加入该topic
+            LinkedList<Long[]> secondList = this.globalPeriodSecondTopicMap.putIfAbsent(meterTopic, new LinkedList<Long[]>());
+            Long[] snap = this.createPeriodTopicMap().get(meterTopic);
+            secondList.addLast(snap);
+        }
+
+        List resultMin = this.globalPeriodMinuteTopicMap.putIfAbsent(meterTopic, new LinkedList<Long[]>());
+        if (resultMin == null) { // 表示第一次加入该topic
+            LinkedList<Long[]> minuteList = this.globalPeriodMinuteTopicMap.putIfAbsent(meterTopic, new LinkedList<Long[]>());
+            Long[] snap = this.createPeriodTopicMap().get(meterTopic);
+            minuteList.addLast(snap);
+        }
+
+        this.globalSecondTopicMap.putIfAbsent(meterTopic, new LinkedBlockingQueue<Meterinfo>());
+        this.globalMinuteTopicMap.putIfAbsent(meterTopic, new LinkedBlockingQueue<Meterinfo>());
     }
 
 
