@@ -41,7 +41,7 @@ public class MeterAccuracyTest {
             }
         });
 
-        for (int i = 0; i < 30; i++) {
+        for (int i = 0; i < 1888; i++) {
             realTimeLimiter.acquire();
             cloudMeter.request();
             input.addAndGet(1);
