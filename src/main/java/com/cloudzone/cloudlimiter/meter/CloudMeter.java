@@ -26,6 +26,7 @@ public class CloudMeter {
     // 队列中保存每个tag最近的10分钟的TPS值
     private static final int LASTERMINUTENUM = 10;
 
+    private volatile boolean isShutDown = false;
     private volatile boolean isPush = false;
     private static volatile boolean isSecondTimerStart = false;
     private static volatile boolean isMinitusTimerStart = false;
@@ -115,14 +116,19 @@ public class CloudMeter {
     private MeterTopic acquireMeterTopic;
 
     /**
-     * 退出释放对应资源（如果调用应用程序不在使用统计功能，建议调用次函数释放资源）
+     * 退出释放对应资源
+     * 强制推送剩余未推送的统计数据给应用程序（如果应用程序不再使用统计功能，建议调用此函数释放资源）
      */
     public void shutdown() {
-        this.scheduledExecutorService.shutdown();
-        // 关闭时候，强制制造1次数据，以达到推送完毕之前有数据
-        meterPerSecondHandle();
-        meterPerMinuteHandle();
-        pushHandle();
+        // 只让关闭一次
+        if (!isShutDown) {
+            isShutDown = true;
+            this.scheduledExecutorService.shutdown();
+            // 关闭时候，强制制造1次数据，以达到推送完毕之前剩余未推送数据
+            meterPerSecondHandle();
+            meterPerMinuteHandle();
+            pushHandle();
+        }
     }
 
     /**

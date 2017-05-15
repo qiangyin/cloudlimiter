@@ -25,7 +25,7 @@ public class MeterAccuracyTest {
         final AtomicLong meterResultMin = new AtomicLong(0);
         RealTimeLimiter realTimeLimiter = CloudFactory.createRealTimeLimiter(10);
         CloudMeter cloudMeter = CloudFactory.createCloudMeter();
-        cloudMeter.setIntervalModel(IntervalModel.ALL);
+        cloudMeter.setIntervalModel(IntervalModel.MINUTE);
         cloudMeter.registerListener(new MeterListener() {
             @Override
             public AcquireStatus acquireStats(List<Meterinfo> meterinfos) {
@@ -47,6 +47,7 @@ public class MeterAccuracyTest {
             input.addAndGet(1);
         }
 
+        cloudMeter.shutdown();
         cloudMeter.shutdown();
 
         System.out.println("input == " + input + " meterResultSec == " + meterResultSec + "  meterResultMin == " + meterResultMin);
